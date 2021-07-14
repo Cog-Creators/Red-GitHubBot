@@ -1,0 +1,17 @@
+{
+    "name": "Red-GitHubBot",
+    "description": "GitHub bot which helps out on Red-DiscordBot's repository.",
+    "website": "https://github.com/jack1142/Red-GitHubBot",
+    "repository": "https://github.com/jack1142/Red-GitHubBot",
+    "env": {
+        "GH_APP_ID": {
+            "description": "GitHub App ID. You can find it in app's settings at https://github.com/settings/apps"
+        },
+        "GH_WEBHOOK_SECRET": {
+            "description": "GitHub webhook secret. You can use `python -c \"print(__import__('secrets').token_hex(32))\"` to generate it. You will need this later to create a webhook in GitHub app."
+        },
+        "GH_PRIVATE_KEY": {
+            "description": "Private key for your GitHub app. You can generate one at the bottom of your app's settings at https://github.com/settings/apps"
+        }
+    }
+}
