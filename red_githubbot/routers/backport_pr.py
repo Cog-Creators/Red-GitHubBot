@@ -25,75 +25,77 @@ SUPPORTED_BRANCHES = {"3.4"}
 @gh_router.register("pull_request", action="closed")
 @gh_router.register("pull_request", action="labeled")
 async def backport_pr(event: sansio.Event) -> None:
-    if event.data["pull_request"]["merged"]:
-        installation_id = event["installation"]["id"]
-        gh = await utils.get_gh_client(installation_id)
+    if not event.data["pull_request"]["merged"]:
+        return
 
-        pr_number = event.data["pull_request"]["number"]
-        sender = event.data["sender"]
-        created_by = event.data["pull_request"]["user"]["login"]
+    installation_id = event["installation"]["id"]
+    gh = await utils.get_gh_client(installation_id)
 
-        commit_hash = event.data["pull_request"]["merge_commit_sha"]
+    pr_number = event.data["pull_request"]["number"]
+    sender = event.data["sender"]
+    created_by = event.data["pull_request"]["user"]["login"]
 
-        pr_labels = []
-        if event.data["action"] == "labeled":
-            pr_labels = [event.data["label"]]
-        else:
-            gh_issue = await gh.getitem(
-                event.data["repository"]["issues_url"],
-                {"number": f"{event.data['pull_request']['number']}"},
+    commit_hash = event.data["pull_request"]["merge_commit_sha"]
+
+    pr_labels = []
+    if event.data["action"] == "labeled":
+        pr_labels = [event.data["label"]]
+    else:
+        gh_issue = await gh.getitem(
+            event.data["repository"]["issues_url"],
+            {"number": f"{event.data['pull_request']['number']}"},
+        )
+        pr_labels = await gh.getitem(gh_issue["labels_url"])
+
+    unsupported_branches = []
+    branches = []
+    for label in pr_labels:
+        if label["name"].startswith("Needs Backport To"):
+            branch = label["name"].rsplit(maxsplit=1)[1]
+            if branch not in SUPPORTED_BRANCHES:
+                unsupported_branches.append(branch)
+                continue
+            branches.append(branch)
+
+    if unsupported_branches:
+        log.warning(
+            "Seen a Needs Backport label with unsupported branches (%s)",
+            ", ".join(unsupported_branches),
+        )
+        await utils.leave_comment(
+            gh,
+            pr_number,
+            f"Sorry @{sender}, {'some of' if branches else ''} the branches you want to"
+            f" backport to ({', '.join(unsupported_branches)}) seem to be unsupported."
+            " Please consider reporting this to Red-GitHubBot's issue tracker"
+            " and backport using [cherry_picker](https://pypi.org/project/cherry-picker/)"
+            " on command line."
+            "```\n"
+            f"cherry_picker {commit_hash} {branch}\n"
+            "```",
+        )
+
+    if branches:
+        message = (
+            f"Thanks @{created_by} for the PR \N{PARTY POPPER}."
+            f" I'm working now to backport this PR to: {', '.join(branches)}."
+        )
+
+        await utils.leave_comment(gh, pr_number, message)
+
+        sorted_branches = sorted(
+            branches, reverse=True, key=lambda v: tuple(map(int, v.split(".")))
+        )
+
+        for branch in sorted_branches:
+            utils.add_job(
+                backport_task,
+                installation_id=installation_id,
+                commit_hash=commit_hash,
+                branch=branch,
+                pr_number=pr_number,
+                sender=sender,
             )
-            pr_labels = await gh.getitem(gh_issue["labels_url"])
-
-        unsupported_branches = []
-        branches = []
-        for label in pr_labels:
-            if label["name"].startswith("Needs Backport To"):
-                branch = label["name"].rsplit(maxsplit=1)[1]
-                if branch not in SUPPORTED_BRANCHES:
-                    unsupported_branches.append(branch)
-                    continue
-                branches.append(branch)
-
-        if unsupported_branches:
-            log.warning(
-                "Seen a Needs Backport label with unsupported branches (%s)",
-                ", ".join(unsupported_branches),
-            )
-            await utils.leave_comment(
-                gh,
-                pr_number,
-                f"Sorry @{sender}, {'some of' if branches else ''} the branches you want to"
-                f" backport to ({', '.join(unsupported_branches)}) seem to be unsupported."
-                " Please consider reporting this to Red-GitHubBot's issue tracker"
-                " and backport using [cherry_picker](https://pypi.org/project/cherry-picker/)"
-                " on command line."
-                "```\n"
-                f"cherry_picker {commit_hash} {branch}\n"
-                "```",
-            )
-
-        if branches:
-            message = (
-                f"Thanks @{created_by} for the PR \N{PARTY POPPER}."
-                f" I'm working now to backport this PR to: {', '.join(branches)}."
-            )
-
-            await utils.leave_comment(gh, pr_number, message)
-
-            sorted_branches = sorted(
-                branches, reverse=True, key=lambda v: tuple(map(int, v.split(".")))
-            )
-
-            for branch in sorted_branches:
-                utils.add_job(
-                    backport_task,
-                    installation_id=installation_id,
-                    commit_hash=commit_hash,
-                    branch=branch,
-                    pr_number=pr_number,
-                    sender=sender,
-                )
 
 
 async def backport_task(
