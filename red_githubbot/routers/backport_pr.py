@@ -3,7 +3,7 @@ import logging
 import os
 import subprocess
 
-import cherry_picker
+from cherry_picker import cherry_picker
 from gidgethub import aiohttp as gh_aiohttp, sansio
 
 from .. import utils
