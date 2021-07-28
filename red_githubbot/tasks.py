@@ -16,7 +16,12 @@ scheduler = AsyncIOScheduler()
 
 async def on_startup(app: web.Application) -> None:
     _prepare_red_git_repo()
-    scheduler.add_jobstore("sqlalchemy", url=os.environ["DATABASE_URL"])
+
+    # https://help.heroku.com/ZKNTJQSK
+    database_url = os.environ["DATABASE_URL"]
+    if database_url.startswith("postgres://"):
+        database_url = database_url.replace("postgres://", "postgresql://", 1)
+    scheduler.add_jobstore("sqlalchemy", url=database_url)
     scheduler.start()
 
 
