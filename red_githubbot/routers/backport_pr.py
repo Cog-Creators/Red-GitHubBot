@@ -26,7 +26,7 @@ async def backport_pr(event: sansio.Event) -> None:
         gh = await utils.get_gh_client(installation_id)
 
         pr_number = event.data["pull_request"]["number"]
-        merged_by = event.data["pull_request"]["merged_by"]["login"]
+        sender = event.data["sender"]
         created_by = event.data["pull_request"]["user"]["login"]
 
         commit_hash = event.data["pull_request"]["merge_commit_sha"]
@@ -66,12 +66,12 @@ async def backport_pr(event: sansio.Event) -> None:
                     commit_hash=commit_hash,
                     branch=branch,
                     pr_number=pr_number,
-                    merged_by=merged_by,
+                    sender=sender,
                 )
 
 
 async def backport_task(
-    *, installation_id: int, commit_hash: str, branch: str, pr_number: int, merged_by: str
+    *, installation_id: int, commit_hash: str, branch: str, pr_number: int, sender: str
 ):
     async with utils.git_lock:
         gh = await utils.get_gh_client(installation_id)
@@ -85,7 +85,7 @@ async def backport_task(
             await utils.leave_comment(
                 gh,
                 pr_number,
-                f"Sorry @{merged_by}, I had trouble checking out the `{branch}` backport branch."
+                f"Sorry @{sender}, I had trouble checking out the `{branch}` backport branch."
                 " Please backport using [cherry_picker](https://pypi.org/project/cherry-picker/)"
                 " on command line."
                 "```\n"
@@ -96,7 +96,7 @@ async def backport_task(
             await utils.leave_comment(
                 gh,
                 pr_number,
-                f"Sorry, @{merged_by}, I could not cleanly backport this to `{branch}`"
+                f"Sorry, @{sender}, I could not cleanly backport this to `{branch}`"
                 " due to a conflict."
                 " Please backport using [cherry_picker](https://pypi.org/project/cherry-picker/)"
                 " on command line.\n"
