@@ -1,6 +1,6 @@
 REQUESTER = "jack1142/Red-GitHubBot"
 REPO_NAME = "Red-DiscordBot"
 FORK_REPO = f"Red-GitHubBot/{REPO_NAME}"
-UPSTREAM_REPO = f"Cog-Creators/{REPO_NAME}"
+UPSTREAM_REPO = f"jack1142/{REPO_NAME}"
 GIT_NAME = "Red-GitHubBot"
 GIT_EMAIL = "87398303+red-githubbot[bot]@users.noreply.github.com"

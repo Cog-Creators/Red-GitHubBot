@@ -13,7 +13,7 @@ from . import gh_router
 log = logging.getLogger(__name__)
 
 CHERRY_PICKER_CONFIG = {
-    "team": "Cog-Creators",
+    "team": "jack1142",
     "repo": "Red-DiscordBot",
     "check_sha": "6251c585e4ec0a53813a9993ede3ab5309024579",
     "fix_commit_msg": False,
