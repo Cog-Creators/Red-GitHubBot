@@ -2,6 +2,7 @@ import logging
 import os
 import subprocess
 
+from aiohttp import web
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from .constants import FORK_REPO, GIT_EMAIL, GIT_NAME, REPO_NAME, UPSTREAM_REPO
@@ -13,7 +14,7 @@ _log = logging.getLogger(__name__)
 scheduler = AsyncIOScheduler()
 
 
-async def on_startup() -> None:
+async def on_startup(app: web.Application) -> None:
     _prepare_red_git_repo()
     scheduler.add_jobstore("sqlalchemy", url=os.environ["DATABASE_URL"])
     scheduler.start()
