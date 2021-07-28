@@ -34,8 +34,8 @@ def _prepare_red_git_repo() -> None:
 
     _prepare_git()
     subprocess.check_output(("git", "clone", f"https://github.com/{FORK_REPO}"))
+    os.chdir(f"./{REPO_NAME}")
     subprocess.check_output(
         ("git", "remote", "add", "upstream", f"https://github.com/{UPSTREAM_REPO}")
     )
-    os.chdir(f"./{REPO_NAME}")
     _log.info("Finished setting up %s repository.", REPO_NAME)
