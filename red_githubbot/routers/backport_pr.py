@@ -7,7 +7,7 @@ from cherry_picker import cherry_picker
 from gidgethub import aiohttp as gh_aiohttp, sansio
 
 from .. import utils
-from ..constants import UPSTREAM_REPO
+from ..constants import FORK_REPO
 from . import gh_router
 
 log = logging.getLogger(__name__)
@@ -143,7 +143,7 @@ def backport(
             "remote",
             "set-url",
             "origin",
-            f"https://x-access-token:{forker_gh.oauth_token}@github.com/{UPSTREAM_REPO}.git",
+            f"https://x-access-token:{forker_gh.oauth_token}@github.com/{FORK_REPO}.git",
         )
     )
     os.environ["GH_AUTH"] = gh.oauth_token
