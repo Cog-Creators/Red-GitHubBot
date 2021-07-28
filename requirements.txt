@@ -6,6 +6,8 @@
 #
 aiohttp==3.7.4.post0
     # via -r requirements.in
+apscheduler==3.7.0
+    # via -r requirements.in
 async-timeout==3.0.1
     # via aiohttp
 attrs==21.2.0
@@ -32,13 +34,28 @@ pycparser==2.20
     # via cffi
 pyjwt[crypto]==2.1.0
     # via gidgethub
+pytz==2021.1
+    # via
+    #   apscheduler
+    #   tzlocal
+redis==3.5.3
+    # via -r requirements.in
 sentry-sdk==1.3.0
     # via -r requirements.in
+six==1.16.0
+    # via apscheduler
 typing-extensions==3.10.0.0
-    # via aiohttp
+    # via
+    #   -r requirements.in
+    #   aiohttp
+tzlocal==2.1
+    # via apscheduler
 uritemplate==3.0.1
     # via gidgethub
 urllib3==1.26.6
     # via sentry-sdk
 yarl==1.6.3
     # via aiohttp
+
+# The following packages are considered to be unsafe in a requirements file:
+# setuptools

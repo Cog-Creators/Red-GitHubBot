@@ -1,4 +1,7 @@
 aiohttp
+apscheduler
 cachetools
 gidgethub
+redis
 sentry_sdk
+typing-extensions

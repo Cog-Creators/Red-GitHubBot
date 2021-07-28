@@ -6,7 +6,7 @@ import gidgethub
 from aiohttp import web
 from gidgethub import sansio
 
-from . import utils
+from . import tasks, utils
 from .routers import gh_router
 
 log = logging.getLogger(__name__)
@@ -55,4 +55,5 @@ async def on_cleanup(app: web.Application) -> None:
 
 app = web.Application()
 app.add_routes(routes)
+app.on_startup.append(tasks.on_startup)
 app.on_cleanup.append(on_cleanup)

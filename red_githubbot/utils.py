@@ -1,10 +1,14 @@
 import os
-from collections.abc import MutableMapping
+from collections.abc import Callable, MutableMapping
 from typing import Any, Union
 
 import aiohttp
 import cachetools
+from apscheduler.job import Job
 from gidgethub import aiohttp as gh_aiohttp, apps
+from typing_extensions import ParamSpec
+
+from .tasks import scheduler
 
 session = aiohttp.ClientSession()
 
@@ -12,6 +16,7 @@ _gh_cache: MutableMapping[Any, Any] = cachetools.LRUCache(maxsize=500)
 public_gh = gh_aiohttp.GitHubAPI(session, "jack1142/Red-GitHubBot", cache=_gh_cache)
 
 _gh_installation_tokens_cache = cachetools.TTLCache(maxsize=100, ttl=55 * 60)
+_P = ParamSpec("P")
 
 
 async def get_gh_client(installation_id: Union[int, str]) -> gh_aiohttp.GitHubAPI:
@@ -45,3 +50,7 @@ async def get_installation_access_token(
         return _gh_installation_tokens_cache[installation_id]
     except KeyError:
         return await get_installation_access_token(installation_id, force_refresh=True)
+
+
+def add_job(func: Callable[_P, Any], *args: _P.args, **kwargs: _P.kwargs) -> Job:
+    return scheduler.add_job(func, args=args, kwargs=kwargs)
