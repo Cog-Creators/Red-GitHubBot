@@ -1,8 +1,8 @@
 aiohttp
-apscheduler
+apscheduler[sqlalchemy]
 cachetools
 cherry_picker
 gidgethub
-redis
+psycopg2
 sentry_sdk
 typing-extensions
