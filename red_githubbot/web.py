@@ -43,7 +43,7 @@ async def webhook(request: web.Request) -> web.Response:
         # We don't want to handle events received from the bot's fork
         repo_full_name = event.data.get("repository", {}).get("full_name")
         if repo_full_name is not None and repo_full_name != UPSTREAM_REPO:
-            return
+            return web.Response(status=200)
 
         # Give GitHub some time to reach internal consistency.
         await asyncio.sleep(1)
