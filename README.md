@@ -45,3 +45,7 @@ Nothing, at the moment :) Don't worry, we're working on it!
 ## License
 
 See the [LICENSE file](LICENSE) for details.
+
+Huge thanks to [Mariatta](https://github.com/Mariatta)
+and her [miss-islington](https://github.com/python/miss-islington)
+which was a huge help when implementing automated backports.

@@ -1,3 +1,4 @@
+import asyncio
 import os
 from collections.abc import Callable, MutableMapping
 from typing import Any, Union
@@ -10,6 +11,7 @@ from typing_extensions import ParamSpec
 
 from .tasks import scheduler
 
+git_lock = asyncio.Lock()
 session = aiohttp.ClientSession()
 
 _gh_cache: MutableMapping[Any, Any] = cachetools.LRUCache(maxsize=500)
@@ -50,6 +52,12 @@ async def get_installation_access_token(
         return _gh_installation_tokens_cache[installation_id]
     except KeyError:
         return await get_installation_access_token(installation_id, force_refresh=True)
+
+
+async def leave_comment(gh: gh_aiohttp.GitHubAPI, issue_number: int, body: str) -> None:
+    issue_comment_url = f"/repos/Cog-Creators/Red-DiscordBot/issues/{issue_number}/comments"
+    data = {"body": body}
+    await gh.post(issue_comment_url, data=data)
 
 
 def add_job(func: Callable[_P, Any], *args: _P.args, **kwargs: _P.kwargs) -> Job:
