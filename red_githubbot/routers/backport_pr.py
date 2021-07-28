@@ -6,6 +6,7 @@ import cherry_picker
 from gidgethub import aiohttp as gh_aiohttp, sansio
 
 from .. import utils
+from ..constants import UPSTREAM_REPO
 from . import gh_router
 
 CHERRY_PICKER_CONFIG = {
@@ -114,8 +115,7 @@ def backport(
             "remote",
             "set-url",
             "origin",
-            f"https://x-access-token:{forker_gh.oauth_token}"
-            "@github.com/Cog-Creators/Red-DiscordBot.git",
+            f"https://x-access-token:{forker_gh.oauth_token}@github.com/{UPSTREAM_REPO}.git",
         )
     )
     os.environ["GH_AUTH"] = gh.oauth_token

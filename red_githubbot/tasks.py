@@ -4,6 +4,8 @@ import subprocess
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
+from .constants import FORK_REPO, GIT_EMAIL, GIT_NAME, REPO_NAME, UPSTREAM_REPO
+
 _log = logging.getLogger(__name__)
 
 # consider adding kwarg:
@@ -18,29 +20,21 @@ async def on_startup() -> None:
 
 
 def _prepare_git() -> None:
-    subprocess.check_output(("git", "config", "--global", "user.name", "Red-GitHubBot"))
-    subprocess.check_output(
-        (
-            "git",
-            "config",
-            "--global",
-            "user.email",
-            "87398303+red-githubbot[bot]@users.noreply.github.com",
-        )
-    )
+    subprocess.check_output(("git", "config", "--global", "user.name", GIT_NAME))
+    subprocess.check_output(("git", "config", "--global", "user.email", GIT_EMAIL))
 
 
 def _prepare_red_git_repo() -> None:
-    _log.info("Setting up Red-DiscordBot repository...")
-    if "Red-DiscordBot" in os.listdir("."):
-        os.chdir("./Red-DiscordBot")
-        _log.info("Red-DiscordBot directory already exists.")
+    _log.info(f"Setting up {REPO_NAME} repository...")
+    if REPO_NAME in os.listdir("."):
+        os.chdir(f"./{REPO_NAME}")
+        _log.info("%s directory already exists.", REPO_NAME)
         return
 
     _prepare_git()
-    subprocess.check_output(("git", "clone", "https://github.com/Red-GitHubBot/Red-DiscordBot"))
+    subprocess.check_output(("git", "clone", f"https://github.com/{FORK_REPO}"))
     subprocess.check_output(
-        ("git", "remote", "add", "upstream", "https://github.com/Cog-Creators/Red-DiscordBot")
+        ("git", "remote", "add", "upstream", f"https://github.com/{UPSTREAM_REPO}")
     )
-    os.chdir("./Red-DiscordBot")
-    _log.info("Finished setting up Red-DiscordBot repository.")
+    os.chdir(f"./{REPO_NAME}")
+    _log.info("Finished setting up %s repository.", REPO_NAME)
