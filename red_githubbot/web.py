@@ -6,6 +6,7 @@ import gidgethub
 from aiohttp import web
 from gidgethub import sansio
 
+from . import utils
 from .routers import gh_router
 
 log = logging.getLogger(__name__)
@@ -48,5 +49,10 @@ async def webhook(request: web.Request) -> web.Response:
         return web.Response(status=500)
 
 
+async def on_cleanup(app: web.Application) -> None:
+    await utils.session.close()
+
+
 app = web.Application()
 app.add_routes(routes)
+app.on_cleanup.append(on_cleanup)
