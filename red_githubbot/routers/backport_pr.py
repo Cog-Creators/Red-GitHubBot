@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import os
 import subprocess
 
@@ -9,6 +10,8 @@ from .. import utils
 from ..constants import UPSTREAM_REPO
 from . import gh_router
 
+log = logging.getLogger(__name__)
+
 CHERRY_PICKER_CONFIG = {
     "team": "Cog-Creators",
     "repo": "Red-DiscordBot",
@@ -16,6 +19,7 @@ CHERRY_PICKER_CONFIG = {
     "fix_commit_msg": False,
     "default_branch": "V3/develop",
 }
+SUPPORTED_BRANCHES = {"3.4"}
 
 
 @gh_router.register("pull_request", action="closed")
@@ -41,11 +45,33 @@ async def backport_pr(event: sansio.Event) -> None:
             )
             pr_labels = await gh.getitem(gh_issue["labels_url"])
 
-        branches = [
-            label["name"].split()[-1]
-            for label in pr_labels
-            if label["name"].startswith("Needs Backport To")
-        ]
+        unsupported_branches = []
+        branches = []
+        for label in pr_labels:
+            if label["name"].startswith("Needs Backport To"):
+                branch = label["name"].rsplit(maxsplit=1)[1]
+                if branch not in SUPPORTED_BRANCHES:
+                    unsupported_branches.append(branch)
+                    continue
+                branches.append(branch)
+
+        if unsupported_branches:
+            log.warning(
+                "Seen a Needs Backport label with unsupported branches (%s)",
+                ", ".join(unsupported_branches),
+            )
+            await utils.leave_comment(
+                gh,
+                pr_number,
+                f"Sorry @{sender}, {'some of' if branches else ''} the branches you want to"
+                f" backport to ({', '.join(unsupported_branches)}) seem to be unsupported."
+                " Please consider reporting this to Red-GitHubBot's issue tracker"
+                " and backport using [cherry_picker](https://pypi.org/project/cherry-picker/)"
+                " on command line."
+                "```\n"
+                f"cherry_picker {commit_hash} {branch}\n"
+                "```",
+            )
 
         if branches:
             message = (
