@@ -7,6 +7,7 @@ from aiohttp import web
 from gidgethub import sansio
 
 from . import tasks, utils
+from .constants import UPSTREAM_REPO
 from .routers import gh_router
 
 log = logging.getLogger(__name__)
@@ -38,6 +39,11 @@ async def webhook(request: web.Request) -> web.Response:
 
         if event.event == "ping":
             return web.Response(status=200)
+
+        # We don't want to handle events received from the bot's fork
+        repo_full_name = event.data.get("repository", {}).get("full_name")
+        if repo_full_name is not None and repo_full_name != UPSTREAM_REPO:
+            return
 
         # Give GitHub some time to reach internal consistency.
         await asyncio.sleep(1)
