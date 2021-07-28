@@ -28,7 +28,7 @@ async def backport_pr(event: sansio.Event) -> None:
     if not event.data["pull_request"]["merged"]:
         return
 
-    installation_id = event["installation"]["id"]
+    installation_id = event.data["installation"]["id"]
     gh = await utils.get_gh_client(installation_id)
 
     pr_number = event.data["pull_request"]["number"]
