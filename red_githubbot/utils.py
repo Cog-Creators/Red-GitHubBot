@@ -16,7 +16,9 @@ git_lock = asyncio.Lock()
 session = aiohttp.ClientSession()
 
 _gh_cache: MutableMapping[Any, Any] = cachetools.LRUCache(maxsize=500)
-public_gh = gh_aiohttp.GitHubAPI(session, REQUESTER, cache=_gh_cache)
+machine_gh = gh_aiohttp.GitHubAPI(
+    session, REQUESTER, cache=_gh_cache, oauth_token=os.environ.get("GH_AUTH")
+)
 
 _gh_installation_tokens_cache = cachetools.TTLCache(maxsize=100, ttl=55 * 60)
 _P = ParamSpec("P")
@@ -31,16 +33,12 @@ async def get_gh_client(installation_id: Union[int, str]) -> gh_aiohttp.GitHubAP
     )
 
 
-async def get_forker_gh_client() -> gh_aiohttp.GitHubAPI:
-    return await get_gh_client(os.environ["GH_FORKER_INSTALLATION_ID"])
-
-
 async def get_installation_access_token(
     installation_id: Union[int, str], *, force_refresh: bool = False
 ) -> str:
     if force_refresh:
         token_data = await apps.get_installation_access_token(
-            public_gh,
+            machine_gh,
             installation_id=str(installation_id),
             app_id=os.environ["GH_APP_ID"],
             private_key=os.environ["GH_PRIVATE_KEY"],

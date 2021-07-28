@@ -1,13 +1,10 @@
 import asyncio
 import logging
-import os
-import subprocess
 
 from cherry_picker import cherry_picker
-from gidgethub import aiohttp as gh_aiohttp, sansio
+from gidgethub import sansio
 
 from .. import utils
-from ..constants import FORK_REPO
 from . import gh_router
 
 log = logging.getLogger(__name__)
@@ -102,16 +99,11 @@ async def backport_task(
     *, installation_id: int, commit_hash: str, branch: str, pr_number: int, sender: str
 ):
     async with utils.git_lock:
-        gh = await utils.get_gh_client(installation_id)
-        forker_gh = await utils.get_forker_gh_client()
-
         try:
-            await asyncio.to_thread(
-                backport, gh=gh, forker_gh=forker_gh, commit_hash=commit_hash, branch=branch
-            )
+            await asyncio.to_thread(backport, commit_hash=commit_hash, branch=branch)
         except cherry_picker.BranchCheckoutException:
             await utils.leave_comment(
-                gh,
+                await utils.get_gh_client(installation_id),
                 pr_number,
                 f"Sorry @{sender}, I had trouble checking out the `{branch}` backport branch."
                 " Please backport using [cherry_picker](https://pypi.org/project/cherry-picker/)"
@@ -122,7 +114,7 @@ async def backport_task(
             )
         except cherry_picker.CherryPickException:
             await utils.leave_comment(
-                gh,
+                await utils.get_gh_client(installation_id),
                 pr_number,
                 f"Sorry, @{sender}, I could not cleanly backport this to `{branch}`"
                 " due to a conflict."
@@ -134,31 +126,15 @@ async def backport_task(
             )
 
 
-def backport(
-    *, gh: gh_aiohttp.GitHubAPI, forker_gh: gh_aiohttp.GitHubAPI, commit_hash: str, branch: str
-) -> None:
-    subprocess.check_output(
-        (
-            "git",
-            "remote",
-            "set-url",
-            "origin",
-            f"https://x-access-token:{forker_gh.oauth_token}@github.com/{FORK_REPO}.git",
-        )
+def backport(*, commit_hash: str, branch: str) -> None:
+    cp = cherry_picker.CherryPicker(
+        pr_remote="origin",
+        commit_sha1=commit_hash,
+        branches=[branch],
+        config=CHERRY_PICKER_CONFIG,
     )
-    os.environ["GH_AUTH"] = gh.oauth_token
-
     try:
-        cp = cherry_picker.CherryPicker(
-            pr_remote="origin",
-            commit_sha1=commit_hash,
-            branches=[branch],
-            config=CHERRY_PICKER_CONFIG,
-        )
-        try:
-            cp.backport()
-        except Exception:
-            cp.abort_cherry_pick()
-            raise
-    finally:
-        del os.environ["GH_AUTH"]
+        cp.backport()
+    except Exception:
+        cp.abort_cherry_pick()
+        raise

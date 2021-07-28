@@ -23,7 +23,8 @@ Nothing, at the moment :) Don't worry, we're working on it!
     - Select needed "Repository permissions"
         - "Checks", "Contents", "Issues", "Pull Requests" are used by this application
     - Create the GitHub App
-2. Deploy the application to Heroku.
+1. [Make a machine account](https://github.com/signup).
+1. Deploy the application to Heroku.
 
     [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/jack1142/Red-GitHubBot)
 
@@ -35,12 +36,14 @@ Nothing, at the moment :) Don't worry, we're working on it!
         ```
 
     - Generate a private key in GitHub App's settings and copy the contents of downloaded key to `GH_PRIVATE_KEY` variable
+    - Generate a personal access token for the bot's machine account and set it under `GH_AUTH` variable
+    - (optional) Set Sentry client key under `SENTRY_DSN` variable for error tracking.
     - Deploy the application
-3. Add a webhook to the GitHub App.
+1. Add a webhook to the GitHub App.
     - Use `https://{app_name}.herokuapp.com/webhook` as Webhook URL
     - Use the previously generated webhook secret (used in `GH_WEBHOOK_SECRET` variable) as Webhook secret
     - Save changes
-4. Install the App on selected repositories.
+1. Install the App on selected repositories.
 
 ## License
 

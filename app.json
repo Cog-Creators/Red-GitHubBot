@@ -13,9 +13,8 @@
         "GH_PRIVATE_KEY": {
             "description": "Private key for your GitHub app. You can generate one at the bottom of your app's settings at https://github.com/settings/apps"
         },
-        "GH_FORKER_INSTALLATION_ID": {
-            "description": "Installation ID for the account used for repository forks.",
-            "required": false
+        "GH_AUTH": {
+            "description": "Personal access token for the machine account to be used by the bot."
         },
         "SENTRY_DSN": {
             "description": "Sentry client key (DSN). You can find it in the 'Client Keys (DSN)' page in the Sentry project's settings.",
