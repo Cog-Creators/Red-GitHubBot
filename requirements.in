@@ -1,6 +1,7 @@
 aiohttp
 apscheduler
 cachetools
+cherry_picker
 gidgethub
 redis
 sentry_sdk
