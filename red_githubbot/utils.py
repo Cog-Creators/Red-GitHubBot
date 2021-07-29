@@ -9,8 +9,8 @@ from apscheduler.job import Job
 from gidgethub import aiohttp as gh_aiohttp, apps
 from typing_extensions import ParamSpec
 
+from . import tasks
 from .constants import REQUESTER, UPSTREAM_REPO
-from .tasks import scheduler
 
 git_lock = asyncio.Lock()
 session = aiohttp.ClientSession()
@@ -60,4 +60,4 @@ async def leave_comment(gh: gh_aiohttp.GitHubAPI, issue_number: int, body: str) 
 
 
 def add_job(func: Callable[_P, Any], *args: _P.args, **kwargs: _P.kwargs) -> Job:
-    return scheduler.add_job(func, args=args, kwargs=kwargs)
+    return tasks.scheduler.add_job(func, args=args, kwargs=kwargs)
