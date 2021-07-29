@@ -1,4 +1,5 @@
 import asyncio
+import datetime
 import os
 from collections.abc import Callable, MutableMapping
 from typing import Any, Union
@@ -61,3 +62,10 @@ async def leave_comment(gh: gh_aiohttp.GitHubAPI, issue_number: int, body: str) 
 
 def add_job(func: Callable[_P, Any], *args: _P.args, **kwargs: _P.kwargs) -> Job:
     return tasks.scheduler.add_job(func, args=args, kwargs=kwargs)
+
+
+def run_job_in(seconds: int, func: Callable[_P, Any], *args: _P.args, **kwargs: _P.kwargs) -> Job:
+    td = datetime.timedelta(seconds=seconds)
+    return tasks.scheduler.add_job(
+        func, "date", run_date=datetime.now() + td, args=args, kwargs=kwargs
+    )
