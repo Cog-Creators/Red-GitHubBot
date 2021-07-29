@@ -11,7 +11,11 @@ GitHub bot which helps out on [Red-DiscordBot's repository](https://github.com/C
 
 ## What does this bot do?
 
-Nothing, at the moment :) Don't worry, we're working on it!
+- Automated backports
+    Labeling a PR with **Needs Backport To 3.x** label will cause the bot to attempt to
+    automatically backport the PR to the appropriate maintenance branch once it's merged.
+
+Doesn't seem like much? Don't worry, we're still working on more!
 
 ## Deployment
 
