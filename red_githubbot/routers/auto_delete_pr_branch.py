@@ -11,7 +11,7 @@ from . import gh_router
 @gh_router.register("pull_request", action="closed")
 async def auto_delete_pr_branch(event: sansio.Event) -> None:
     pr_data = event.data["pull_request"]
-    if event.data["pull_request"]["user"]["login"] == MACHINE_USERNAME:
+    if pr_data["user"]["login"] == MACHINE_USERNAME:
         branch_name = pr_data["head"]["ref"]
         branch_url = f"/repos/{FORK_REPO}/git/refs/heads/{branch_name}"
         if pr_data["merged"]:
