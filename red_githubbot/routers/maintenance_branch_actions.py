@@ -149,7 +149,7 @@ async def validate_maintenance_branch_pr(event: sansio.Event) -> None:
     if match is None:
         conclusion = utils.CheckRunConclusion.FAILURE
         title = f"[{base_branch}] {title}"
-        description = utils.CheckRunOutput(
+        output = utils.CheckRunOutput(
             title="PR title is not prefixed with the branch's name.",
             summary=(
                 "Title of a PR made to a maintenance branch must be prefixed"
@@ -159,7 +159,7 @@ async def validate_maintenance_branch_pr(event: sansio.Event) -> None:
     elif match.group("branch") != base_branch:
         conclusion = utils.CheckRunConclusion.FAILURE
         title = f"[{base_branch}] " + title.replace(f"[{match.group('branch')}] ", "", 1)
-        description = utils.CheckRunOutput(
+        output = utils.CheckRunOutput(
             title="PR title is prefixed with incorrect branch's name.",
             summary=(
                 "Title of a PR made to a maintenance branch must be prefixed"
@@ -168,13 +168,13 @@ async def validate_maintenance_branch_pr(event: sansio.Event) -> None:
         )
     else:
         conclusion = utils.CheckRunConclusion.SUCCESS
-        description = utils.CheckRunOutput(
+        output = utils.CheckRunOutput(
             title="PR title is prefixed with maintenance branch's name.",
             summary="Title of a PR has a proper prefix.",
         )
 
     if original_pr_number is None:
-        description.summary += (
+        output.summary += (
             "\n\n"
             "Note: If this is a backport of a different PR,"
             " you should also include the original PR number, for example:\n"
@@ -182,10 +182,8 @@ async def validate_maintenance_branch_pr(event: sansio.Event) -> None:
         )
         if conclusion is utils.CheckRunConclusion.SUCCESS:
             conclusion = utils.CheckRunConclusion.NEUTRAL
-            description.title = (
-                f"{description.title[:-1]}, but it does not include original PR number."
-            )
+            output.title = f"{output.title[:-1]}, but it does not include original PR number."
 
     await utils.post_check_run(
-        gh, name=CHECK_RUN_NAME, head_sha=head_sha, conclusion=conclusion, description=description
+        gh, name=CHECK_RUN_NAME, head_sha=head_sha, conclusion=conclusion, output=output
     )
