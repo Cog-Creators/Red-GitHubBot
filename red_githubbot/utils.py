@@ -112,7 +112,7 @@ async def post_check_run(
     if output is not None:
         data["output"] = output.to_dict()
 
-    await gh.post(check_run_url)
+    await gh.post(check_run_url, data=data)
 
 
 def normalize_title(title: str, body: str) -> str:
