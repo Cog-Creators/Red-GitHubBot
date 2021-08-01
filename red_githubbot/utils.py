@@ -115,6 +115,14 @@ async def post_check_run(
     await gh.post(check_run_url)
 
 
+def normalize_title(title: str, body: str) -> str:
+    """Normalize the title if it spills over into the PR's body."""
+    if not (title.endswith("…") and body.startswith("…")):
+        return title
+    else:
+        return title[:-1] + body[1:].partition("\n")[0].rstrip("\r")
+
+
 def add_job(func: Callable[_P, Any], *args: _P.args, **kwargs: _P.kwargs) -> Job:
     return tasks.scheduler.add_job(func, args=args, kwargs=kwargs)
 
