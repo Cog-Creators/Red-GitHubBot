@@ -45,6 +45,10 @@ class CheckRunConclusion(enum.Enum):
     TIMED_OUT = "timed_out"
 
 
+def _noneless_dict_factory(result: tuple[str, Any]) -> None:
+    return dict((key, value) for key, value in result if value is not None)
+
+
 @dataclasses.dataclass
 class CheckRunOutput:
     title: str
@@ -53,7 +57,7 @@ class CheckRunOutput:
     # Output can also contain `annotations` and `images` but they can always be added in the future
 
     def to_dict(self) -> dict[str, Any]:
-        return dataclasses.asdict(self)
+        return dataclasses.asdict(self, dict_factory=_noneless_dict_factory)
 
 
 async def get_gh_client(installation_id: int) -> gh_aiohttp.GitHubAPI:
