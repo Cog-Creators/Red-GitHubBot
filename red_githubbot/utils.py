@@ -4,7 +4,7 @@ import datetime
 import enum
 import os
 from collections.abc import Callable, MutableMapping
-from typing import Any, Optional, Union
+from typing import Any, Optional
 
 import aiohttp
 import cachetools
@@ -23,7 +23,9 @@ machine_gh = gh_aiohttp.GitHubAPI(
     session, REQUESTER, cache=_gh_cache, oauth_token=os.environ.get("GH_AUTH")
 )
 
-_gh_installation_tokens_cache = cachetools.TTLCache(maxsize=100, ttl=55 * 60)
+_gh_installation_tokens_cache: MutableMapping[int, str] = cachetools.TTLCache(
+    maxsize=100, ttl=55 * 60
+)
 _P = ParamSpec("P")
 
 
@@ -54,7 +56,7 @@ class CheckRunOutput:
         return dataclasses.asdict(self)
 
 
-async def get_gh_client(installation_id: Union[int, str]) -> gh_aiohttp.GitHubAPI:
+async def get_gh_client(installation_id: int) -> gh_aiohttp.GitHubAPI:
     return gh_aiohttp.GitHubAPI(
         session,
         requester=REQUESTER,
@@ -64,7 +66,7 @@ async def get_gh_client(installation_id: Union[int, str]) -> gh_aiohttp.GitHubAP
 
 
 async def get_installation_access_token(
-    installation_id: Union[int, str], *, force_refresh: bool = False
+    installation_id: int, *, force_refresh: bool = False
 ) -> str:
     if force_refresh:
         token_data = await apps.get_installation_access_token(
@@ -100,7 +102,7 @@ async def post_check_run(
     output: Optional[CheckRunOutput] = None,
 ) -> None:
     check_run_url = f"/repos/{UPSTREAM_REPO}/check-runs"
-    data = {"name": name, "head_sha": head_sha}
+    data: dict[str, Any] = {"name": name, "head_sha": head_sha}
     if status is not None:
         if conclusion is not None and status is not CheckRunStatus.COMPLETED:
             raise RuntimeError("`status` needs to be `COMPLETED` when `conclusion` is provided.")
