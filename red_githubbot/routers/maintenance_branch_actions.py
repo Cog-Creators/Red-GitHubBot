@@ -144,7 +144,7 @@ async def validate_maintenance_branch_pr(event: sansio.Event) -> None:
     head_sha = pr_data["head"]["sha"]
     title = utils.normalize_title(pr_data["title"], pr_data["body"])
     match = MAINTENANCE_BRANCH_TITLE_RE.match(title)
-    original_pr_number = match.group("pr_number")
+    original_pr_number = match and match.group("pr_number")
 
     if match is None:
         conclusion = utils.CheckRunConclusion.FAILURE
