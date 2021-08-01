@@ -14,6 +14,15 @@ GitHub bot which helps out on [Red-DiscordBot's repository](https://github.com/C
 - Automated backports
     Labeling a PR with **Needs Backport To 3.x** label will cause the bot to attempt to
     automatically backport the PR to the appropriate maintenance branch once it's merged.
+- Copy labels from the original PR to the backport
+    The bot copies the relevant labels (type, and some release indicators)
+    from the original PR to the backport PR.
+- Comment on the original PR about the backport
+    To help find the backport PR from the original PR, the bot mentions it in a comment.
+    This also acts as a notification about the automated backport being successfully made.
+- Verify titles of PRs targetting the maintenance branch
+    The bot adds a check run to the PR to indicate whether the PR contains a `[3.x]` prefix,
+    and also leaves a small note in there if the title does not contain the original PR number.
 
 Doesn't seem like much? Don't worry, we're still working on more!
 
@@ -54,5 +63,7 @@ Doesn't seem like much? Don't worry, we're still working on more!
 See the [LICENSE file](LICENSE) for details.
 
 Huge thanks to [Mariatta](https://github.com/Mariatta)
-and her [miss-islington](https://github.com/python/miss-islington)
-which was a huge help when implementing automated backports.
+and her [miss-islington bot](https://github.com/python/miss-islington),
+as well as [Brett Cannon](https://github.com/brettcannon)
+and his [bedevere bot](https://github.com/python/bedevere)
+which were both a huge help when implementing backport-related functionality.
