@@ -97,7 +97,7 @@ async def backport_pr(event: sansio.Event) -> None:
 
 async def backport_task(
     *, installation_id: int, commit_hash: str, branch: str, pr_number: int, sender: str
-):
+) -> None:
     async with utils.git_lock:
         try:
             await asyncio.to_thread(backport, commit_hash=commit_hash, branch=branch)
