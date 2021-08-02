@@ -2,6 +2,7 @@ import asyncio
 import dataclasses
 import datetime
 import enum
+import logging
 import os
 from collections.abc import Callable, MutableMapping
 from typing import Any, Optional
@@ -14,6 +15,8 @@ from typing_extensions import ParamSpec
 
 from . import tasks
 from .constants import REQUESTER, UPSTREAM_REPO
+
+log = logging.getLogger(__name__)
 
 git_lock = asyncio.Lock()
 session = aiohttp.ClientSession()
@@ -119,6 +122,38 @@ async def post_check_run(
         data["output"] = output.to_dict()
 
     await gh.post(check_run_url, data=data)
+
+
+async def get_open_pr_for_commit(
+    gh: gh_aiohttp.GitHubAPI, sha: str, *, get_pr_data: bool = False
+) -> Optional[dict[str, Any]]:
+    """
+    Get the most recently updated open PR associated with the given commit.
+
+    This is needed for `check_run` hooks because GitHub does not provide associated PR
+    when the PR is made from a fork.
+
+    Note: This is like getting a PR from the issues endpoint
+    so some PR attributes might be missing.
+    To get full PR data, you need to set the `get_pr_data` kwarg to `True`.
+    """
+    search_results = await gh.getitem(
+        "/search/issues{?q,sort}",
+        {"q": f"type:pr repo:{UPSTREAM_REPO} sha:{sha} is:open", "sort": "updated"},
+    )
+    if search_results["total_count"] > 0:
+        if search_results["total_count"] > 1:
+            log.warning(
+                "Found more than one possible candidate when searching for an open PR"
+                " associated with the commit `%s`. Choosing the most recently updated one...",
+                sha,
+            )
+        issue_data = search_results["items"][0]
+        if get_pr_data:
+            return await gh.getitem(issue_data["pull_request"]["url"])
+        return issue_data
+
+    return None
 
 
 def normalize_title(title: str, body: str) -> str:

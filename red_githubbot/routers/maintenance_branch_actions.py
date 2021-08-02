@@ -109,6 +109,9 @@ async def validate_maintenance_branch_pr(event: sansio.Event) -> None:
 
     The maintenance branch PR has to start with `[X.Y]`
     """
+    installation_id = event.data["installation"]["id"]
+    gh = await utils.get_gh_client(installation_id)
+
     if event.event == "pull_request":
         if event.data["action"] == "edited" and "title" not in event.data["changes"]:
             return
@@ -131,15 +134,20 @@ async def validate_maintenance_branch_pr(event: sansio.Event) -> None:
         elif pull_requests:
             pr_data = pull_requests[0]
         else:
-            return
+            pr_data = await utils.get_open_pr_for_commit(
+                gh, check_run_data["head_sha"], get_pr_data=True
+            )
+            if pr_data is None:
+                log.error(
+                    "Could not find an open PR for the rerequested check run with ID %s",
+                    check_run_data["id"],
+                )
+                return
 
     base_branch = pr_data["base"]["ref"]
 
     if base_branch not in MAINTENANCE_BRANCHES:
         return
-
-    installation_id = event.data["installation"]["id"]
-    gh = await utils.get_gh_client(installation_id)
 
     head_sha = pr_data["head"]["sha"]
     title = utils.normalize_title(pr_data["title"], pr_data["body"])
