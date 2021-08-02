@@ -76,7 +76,7 @@ async def _remove_backport_label(
     await gh.delete(original_pr_data["labels_url"], {"name": backport_label})
     message = (
         f"#{backport_pr_number} is a backport of this pull request to"
-        f" [Red {branch}](https://github.com/{UPSTREAM_REPO}/tree/{branch}."
+        f" [Red {branch}](https://github.com/{UPSTREAM_REPO}/tree/{branch})."
     )
     await gh.post(original_pr_data["comments_url"], data={"body": message})
 
