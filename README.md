@@ -23,6 +23,9 @@ GitHub bot which helps out on [Red-DiscordBot's repository](https://github.com/C
 - Verify titles of PRs targetting the maintenance branch
     The bot adds a check run to the PR to indicate whether the PR contains a `[3.x]` prefix,
     and also leaves a small note in there if the title does not contain the original PR number.
+- Check for Blocked labels
+    The bot reports the Blocked status for all PRs based on the PR's labels
+    to avoid accidental merges of PRs that should not yet be merged.
 
 Doesn't seem like much? Don't worry, we're still working on more!
 
