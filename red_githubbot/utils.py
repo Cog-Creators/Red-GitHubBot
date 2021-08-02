@@ -48,7 +48,7 @@ class CheckRunConclusion(enum.Enum):
     TIMED_OUT = "timed_out"
 
 
-def _noneless_dict_factory(result: tuple[str, Any]) -> None:
+def _noneless_dict_factory(result: list[tuple[str, Any]]) -> dict[str, Any]:
     return dict((key, value) for key, value in result if value is not None)
 
 
