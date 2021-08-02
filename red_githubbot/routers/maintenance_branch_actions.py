@@ -91,7 +91,7 @@ async def _copy_over_labels(
         if label_data["name"].startswith(COPYABLE_LABELS_PREFIXES)
     ]
     if labels:
-        labels_url = f"/repos/{UPSTREAM_REPO}/issues/{original_pr_data['number']}/labels"
+        labels_url = f"/repos/{UPSTREAM_REPO}/issues/{backport_pr_number}/labels"
         await gh.post(labels_url, data=labels)
 
 
