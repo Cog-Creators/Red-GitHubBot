@@ -83,7 +83,7 @@ async def _remove_backport_label(
 
 async def _copy_over_labels(
     gh: gh_aiohttp.GitHubAPI, *, original_pr_data: dict[str, Any], backport_pr_number: int
-):
+) -> None:
     """Copy over relevant labels from the original PR to the backport PR."""
     labels = [
         label_data["name"]
@@ -109,47 +109,22 @@ async def validate_maintenance_branch_pr(event: sansio.Event) -> None:
 
     The maintenance branch PR has to start with `[X.Y]`
     """
-    installation_id = event.data["installation"]["id"]
-    gh = await utils.get_gh_client(installation_id)
-
     if event.event == "pull_request":
         if event.data["action"] == "edited" and "title" not in event.data["changes"]:
             return
 
-        pr_data = event.data["pull_request"]
-    else:
-        check_run_data = event.data["check_run"]
-        if check_run_data["name"] != CHECK_RUN_NAME:
-            return
-
-        pull_requests = check_run_data["pull_requests"]
-        if len(pull_requests) > 1:
-            # if this happens, I want this on Sentry
-            log.error(
-                "Check run with ID %s was rerequested but multiple PRs were found:\n%r",
-                check_run_data["id"],
-                pull_requests,
-            )
-            return
-        elif pull_requests:
-            pr_data = pull_requests[0]
-        else:
-            pr_data = await utils.get_open_pr_for_commit(
-                gh, check_run_data["head_sha"], get_pr_data=True
-            )
-            if pr_data is None:
-                log.error(
-                    "Could not find an open PR for the rerequested check run with ID %s",
-                    check_run_data["id"],
-                )
-                return
+    installation_id = event.data["installation"]["id"]
+    gh = await utils.get_gh_client(installation_id)
+    pr_data, head_sha = await utils.get_pr_data_for_check_run(
+        gh, event=event, check_run_name=CHECK_RUN_NAME, get_pr_data=True
+    )
+    if pr_data is None:
+        return
 
     base_branch = pr_data["base"]["ref"]
-
     if base_branch not in MAINTENANCE_BRANCHES:
         return
 
-    head_sha = pr_data["head"]["sha"]
     title = utils.normalize_title(pr_data["title"], pr_data["body"])
     match = MAINTENANCE_BRANCH_TITLE_RE.match(title)
     original_pr_number = match and match.group("pr_number")

@@ -10,7 +10,7 @@ from typing import Any, Optional
 import aiohttp
 import cachetools
 from apscheduler.job import Job
-from gidgethub import aiohttp as gh_aiohttp, apps
+from gidgethub import aiohttp as gh_aiohttp, apps, sansio
 from typing_extensions import ParamSpec
 
 from . import tasks
@@ -154,6 +154,45 @@ async def get_open_pr_for_commit(
         return issue_data
 
     return None
+
+
+async def get_pr_data_for_check_run(
+    gh: gh_aiohttp.GitHubAPI,
+    *,
+    event: sansio.Event,
+    check_run_name: str,
+    get_pr_data: bool = False,
+) -> tuple[Optional[dict[str, Any]], str]:
+    if event.event == "pull_request":
+        pr_data = event.data["pull_request"]
+        head_sha = pr_data["head"]["sha"]
+    else:
+        check_run_data = event.data["check_run"]
+        head_sha = check_run_data["head_sha"]
+        if check_run_data["name"] != check_run_name:
+            return None, head_sha
+
+        pull_requests = check_run_data["pull_requests"]
+        if len(pull_requests) > 1:
+            # if this happens, I want this on Sentry
+            log.error(
+                "Check run with ID %s was rerequested but multiple PRs were found:\n%r",
+                check_run_data["id"],
+                pull_requests,
+            )
+            return None, head_sha
+        elif pull_requests:
+            pr_data = pull_requests[0]
+        else:
+            pr_data = await get_open_pr_for_commit(gh, head_sha, get_pr_data=get_pr_data)
+            if pr_data is None:
+                log.error(
+                    "Could not find an open PR for the rerequested check run with ID %s",
+                    check_run_data["id"],
+                )
+                return None, head_sha
+
+    return pr_data, head_sha
 
 
 def normalize_title(title: str, body: str) -> str:
