@@ -22,7 +22,7 @@ async def check_for_blocked_labels(event: sansio.Event) -> None:
         return
 
     blocked_labels = [
-        label_data["name"]
+        label_data
         for label_data in pr_data["labels"]
         if label_data["name"] == "Blocked" or label_data["name"].startswith("Blocked by: ")
     ]
