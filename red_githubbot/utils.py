@@ -9,6 +9,7 @@ from typing import Any, Optional
 
 import aiohttp
 import cachetools
+import mistune
 from apscheduler.job import Job
 from gidgethub import aiohttp as gh_aiohttp, apps, sansio
 from typing_extensions import ParamSpec
@@ -30,6 +31,10 @@ _gh_installation_tokens_cache: MutableMapping[int, str] = cachetools.TTLCache(
     maxsize=100, ttl=55 * 60
 )
 _P = ParamSpec("P")
+
+parse_markdown = mistune.create_markdown(
+    renderer="ast", plugins=("strikethrough", "table", "task_lists")
+)
 
 
 class CheckRunStatus(enum.Enum):

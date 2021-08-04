@@ -3,6 +3,8 @@ apscheduler[sqlalchemy]
 cachetools
 cherry_picker
 gidgethub
+mistune>=2.0.0rc1
 psycopg2
+regex
 sentry_sdk
 typing-extensions
