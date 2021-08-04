@@ -31,6 +31,7 @@ machine_gh = gh_aiohttp.GitHubAPI(
 _gh_installation_tokens_cache: MutableMapping[int, str] = cachetools.TTLCache(
     maxsize=100, ttl=55 * 60
 )
+gh_installation_id_cache: MutableMapping[str, int] = cachetools.LRUCache(100)
 _P = ParamSpec("P")
 
 parse_markdown = mistune.create_markdown(
@@ -69,13 +70,35 @@ class CheckRunOutput:
         return dataclasses.asdict(self, dict_factory=_noneless_dict_factory)
 
 
-async def get_gh_client(installation_id: int) -> gh_aiohttp.GitHubAPI:
+async def get_gh_client(
+    installation_id: Optional[int] = None, *, slug: str = UPSTREAM_REPO
+) -> gh_aiohttp.GitHubAPI:
+    if installation_id is None:
+        installation_id = await get_installation_id_by_repo(slug)
     return gh_aiohttp.GitHubAPI(
         session,
         requester=REQUESTER,
         oauth_token=await get_installation_access_token(installation_id),
         cache=_gh_cache,
     )
+
+
+async def get_installation_id_by_repo(slug: str, *, force_refresh: bool = False) -> int:
+    owner = slug.split("/", maxsplit=1)[0].lower()
+
+    if force_refresh:
+        jwt = apps.get_jwt(
+            app_id=os.environ["GH_APP_ID"], private_key=os.environ["GH_PRIVATE_KEY"]
+        )
+        installation_data = await machine_gh.getitem(f"/repos/{slug}/installation", jwt=jwt)
+        installation_id = installation_data["id"]
+        gh_installation_id_cache[owner] = installation_id
+        return installation_id
+
+    try:
+        return gh_installation_id_cache[owner]
+    except KeyError:
+        return await get_installation_id_by_repo(slug, force_refresh=True)
 
 
 async def get_installation_access_token(
