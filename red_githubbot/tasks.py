@@ -22,7 +22,8 @@ async def on_startup(app: web.Application) -> None:
     database_url = os.environ["DATABASE_URL"]
     if database_url.startswith("postgres://"):
         database_url = database_url.replace("postgres://", "postgresql://", 1)
-    scheduler.add_jobstore("sqlalchemy", url=database_url)
+    scheduler.add_jobstore("sqlalchemy", alias="default", url=database_url)
+    scheduler.add_jobstore("memory", alias="memory")
     scheduler.start()
 
 

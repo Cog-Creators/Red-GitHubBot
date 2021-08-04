@@ -5,12 +5,13 @@ import enum
 import logging
 import os
 from collections.abc import Callable, MutableMapping
-from typing import Any, Optional
+from typing import Any, Optional, TypeVar
 
 import aiohttp
 import cachetools
 import mistune
 from apscheduler.job import Job
+from apscheduler.triggers.interval import IntervalTrigger
 from gidgethub import aiohttp as gh_aiohttp, apps, sansio
 from typing_extensions import ParamSpec
 
@@ -217,3 +218,41 @@ def run_job_in(seconds: int, func: Callable[_P, Any], *args: _P.args, **kwargs: 
     return tasks.scheduler.add_job(
         func, "date", run_date=datetime.datetime.now() + td, args=args, kwargs=kwargs
     )
+
+
+_T = TypeVar("_T", bound=Callable[[], Any])
+
+
+def interval_job(
+    job_id: Optional[str] = None,
+    *,
+    weeks: int = 0,
+    days: int = 0,
+    hours: int = 0,
+    minutes: int = 0,
+    seconds: int = 0,
+) -> Callable[[_T], Any]:
+    def decorator(func: _T) -> _T:
+        nonlocal job_id
+        if job_id is None:
+            module_name = getattr(func, "__module__", None)
+            job_id = func.__name__
+            if module_name is not None:
+                job_id = f"{module_name}.{job_id}"
+
+        tasks.scheduler.add_job(
+            func,
+            IntervalTrigger(
+                weeks=weeks,
+                days=days,
+                hours=hours,
+                minutes=minutes,
+                seconds=seconds,
+            ),
+            id=job_id,
+            jobstore="memory",
+            replace_existing=True,
+        )
+        return func
+
+    return decorator
