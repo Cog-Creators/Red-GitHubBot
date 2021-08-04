@@ -5,8 +5,8 @@ import subprocess
 from aiohttp import web
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
+from . import utils
 from .constants import FORK_REPO, GIT_EMAIL, GIT_NAME, REPO_NAME, UPSTREAM_REPO
-from .utils import machine_gh
 
 _log = logging.getLogger(__name__)
 
@@ -41,7 +41,11 @@ def _prepare_red_git_repo() -> None:
 
     _prepare_git()
     subprocess.check_output(
-        ("git", "clone", f"https://{machine_gh.oauth_token}:x-oauth-basic@github.com/{FORK_REPO}")
+        (
+            "git",
+            "clone",
+            f"https://{utils.machine_gh.oauth_token}:x-oauth-basic@github.com/{FORK_REPO}",
+        )
     )
     os.chdir(f"./{REPO_NAME}")
     subprocess.check_output(

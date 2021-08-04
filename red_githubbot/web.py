@@ -55,11 +55,15 @@ async def webhook(request: web.Request) -> web.Response:
         return web.Response(status=500)
 
 
+async def on_startup(app: web.Application) -> None:
+    await tasks.on_startup(app)
+
+
 async def on_cleanup(app: web.Application) -> None:
     await utils.session.close()
 
 
 app = web.Application()
 app.add_routes(routes)
-app.on_startup.append(tasks.on_startup)
+app.on_startup.append(on_startup)
 app.on_cleanup.append(on_cleanup)
