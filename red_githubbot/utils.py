@@ -4,7 +4,7 @@ import datetime
 import enum
 import logging
 import os
-from collections.abc import Callable, MutableMapping
+from collections.abc import Callable, Mapping, MutableMapping
 from typing import Any, Optional, TypeVar
 
 import aiohttp
@@ -16,7 +16,7 @@ from gidgethub import aiohttp as gh_aiohttp, apps, sansio
 from typing_extensions import ParamSpec
 
 from . import tasks
-from .constants import REQUESTER, UPSTREAM_REPO
+from .constants import MACHINE_USERNAME, REQUESTER, UPSTREAM_REPO
 
 log = logging.getLogger(__name__)
 
@@ -24,18 +24,61 @@ git_lock = asyncio.Lock()
 session = aiohttp.ClientSession()
 
 _gh_cache: MutableMapping[Any, Any] = cachetools.LRUCache(maxsize=500)
-machine_gh = gh_aiohttp.GitHubAPI(
-    session, REQUESTER, cache=_gh_cache, oauth_token=os.environ.get("GH_AUTH")
-)
-
 _gh_installation_tokens_cache: MutableMapping[int, str] = cachetools.TTLCache(
     maxsize=100, ttl=55 * 60
 )
 gh_installation_id_cache: MutableMapping[str, int] = cachetools.LRUCache(100)
-_P = ParamSpec("P")
 
 parse_markdown = mistune.create_markdown(
     renderer="ast", plugins=("strikethrough", "table", "task_lists")
+)
+
+
+class GitHubAPI(gh_aiohttp.GitHubAPI):
+    def __init__(self, client_name: str, *, oauth_token: Optional[str] = None) -> None:
+        """
+        GitHub API client that logs current rate limit status after each request.
+
+        This class requires the developer to pass a client name for inclusion of it in logs.
+        """
+        self.client_name = client_name
+        super().__init__(session, REQUESTER, cache=_gh_cache, oauth_token=oauth_token)
+
+    async def _request(
+        self, method: str, url: str, headers: Mapping[str, str], body: bytes = b""
+    ) -> tuple[int, Mapping[str, str], bytes]:
+        ret = await super()._request(method, url, headers, body)
+        rate_limit = sansio.RateLimit.from_http(headers)
+        if rate_limit is None:
+            log.info(
+                "Processing GitHub API response...\n"
+                "    - Client name: %s\n"
+                "    - Request Method: %s\n"
+                "    - Request URL: %s",
+                self.client_name,
+                method,
+                url,
+            )
+        else:
+            log.info(
+                "Processing GitHub API response...\n"
+                "    - Client Name: %s\n"
+                "    - Request Method: %s\n"
+                "    - Request URL: %s\n"
+                "    - Rate Limit Points Remaining: %d/%d\n"
+                "    - Rate Limit Resets At: %s",
+                self.client_name,
+                method,
+                url,
+                rate_limit.remaining,
+                rate_limit.limit,
+                rate_limit.reset_datetime,
+            )
+        return ret
+
+
+machine_gh = GitHubAPI(
+    f"{MACHINE_USERNAME} (Machine account)", oauth_token=os.environ.get("GH_AUTH")
 )
 
 
@@ -72,14 +115,12 @@ class CheckRunOutput:
 
 async def get_gh_client(
     installation_id: Optional[int] = None, *, slug: str = UPSTREAM_REPO
-) -> gh_aiohttp.GitHubAPI:
+) -> GitHubAPI:
     if installation_id is None:
         installation_id = await get_installation_id_by_repo(slug)
-    return gh_aiohttp.GitHubAPI(
-        session,
-        requester=REQUESTER,
+    return GitHubAPI(
+        f"Installation {installation_id}",
         oauth_token=await get_installation_access_token(installation_id),
-        cache=_gh_cache,
     )
 
 
@@ -121,14 +162,14 @@ async def get_installation_access_token(
         return await get_installation_access_token(installation_id, force_refresh=True)
 
 
-async def leave_comment(gh: gh_aiohttp.GitHubAPI, issue_number: int, body: str) -> None:
+async def leave_comment(gh: GitHubAPI, issue_number: int, body: str) -> None:
     issue_comment_url = f"/repos/{UPSTREAM_REPO}/issues/{issue_number}/comments"
     data = {"body": body}
     await gh.post(issue_comment_url, data=data)
 
 
 async def post_check_run(
-    gh: gh_aiohttp.GitHubAPI,
+    gh: GitHubAPI,
     *,
     name: str,
     head_sha: str,
@@ -154,7 +195,7 @@ async def post_check_run(
 
 
 async def get_open_pr_for_commit(
-    gh: gh_aiohttp.GitHubAPI, sha: str, *, get_pr_data: bool = False
+    gh: GitHubAPI, sha: str, *, get_pr_data: bool = False
 ) -> Optional[dict[str, Any]]:
     """
     Get the most recently updated open PR associated with the given commit.
@@ -186,7 +227,7 @@ async def get_open_pr_for_commit(
 
 
 async def get_pr_data_for_check_run(
-    gh: gh_aiohttp.GitHubAPI,
+    gh: GitHubAPI,
     *,
     event: sansio.Event,
     check_run_name: str,
@@ -230,6 +271,9 @@ def normalize_title(title: str, body: str) -> str:
         return title
     else:
         return title[:-1] + body[1:].partition("\n")[0].rstrip("\r")
+
+
+_P = ParamSpec("P")
 
 
 def add_job(func: Callable[_P, Any], *args: _P.args, **kwargs: _P.kwargs) -> Job:

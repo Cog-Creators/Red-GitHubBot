@@ -2,7 +2,7 @@ import logging
 import re
 from typing import Any
 
-from gidgethub import aiohttp as gh_aiohttp, sansio
+from gidgethub import sansio
 
 from .. import utils
 from ..constants import MAINTENANCE_BRANCHES, UPSTREAM_REPO
@@ -58,7 +58,7 @@ async def handle_backport_prs(event: sansio.Event) -> None:
 
 
 async def _remove_backport_label(
-    gh: gh_aiohttp.GitHubAPI,
+    gh: utils.GitHubAPI,
     *,
     original_pr_data: dict[str, Any],
     branch: str,
@@ -82,7 +82,7 @@ async def _remove_backport_label(
 
 
 async def _copy_over_labels(
-    gh: gh_aiohttp.GitHubAPI, *, original_pr_data: dict[str, Any], backport_pr_number: int
+    gh: utils.GitHubAPI, *, original_pr_data: dict[str, Any], backport_pr_number: int
 ) -> None:
     """Copy over relevant labels from the original PR to the backport PR."""
     labels = [
