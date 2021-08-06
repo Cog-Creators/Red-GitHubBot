@@ -36,6 +36,18 @@ GitHub bot which helps out on [Red-DiscordBot's repository](https://github.com/C
     The bot reports the Blocked status for all PRs based on the PR's labels
     to avoid accidental merges of PRs that should not yet be merged.
 
+- Auto-apply **Resolution: Fix Committed** and **Resolution: Fix Released** labels
+
+    The bot auto-applies **Resolution: Fix Committed** label on the issues that were
+    closed by a PR, and auto-closes and labels issues that get linked
+    (either with "Linked issues" feature *or* with the "closes" keyword in the PR's body)
+    in merged PRs.
+
+    On successful run of Publish Release workflow on the repository, the bot fetches all PRs
+    that were made between previous tag and the newly tagged release, and auto-applies
+    **Resolution: Fix Released** label on the linked issues that had
+    **Resolution: Fix Committed** label.
+
 Doesn't seem like much? Don't worry, we're still working on more!
 
 ## Deployment
