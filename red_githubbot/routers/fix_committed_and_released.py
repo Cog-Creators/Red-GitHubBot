@@ -39,7 +39,7 @@ query getPRHistory(
     ref(qualifiedName: $tag_name) {
       target {
         ... on Commit {
-          # querying 99 costs 10 while querying 100 costs 12
+          # querying 99 costs 20 while querying 100 costs 22
           history(first: 99 after: $after since: $since) {
             nodes {
               associatedPullRequests(first: 1) {
@@ -53,6 +53,17 @@ query getPRHistory(
                       labels(last: 100) {
                         nodes {
                           name
+                        }
+                      }
+                      timelineItems(itemTypes: [CLOSED_EVENT] last: 1) {
+                        nodes {
+                          ... on ClosedEvent {
+                            closer {
+                              ... on PullRequest {
+                                number
+                              }
+                            }
+                          }
                         }
                       }
                     }
@@ -174,13 +185,35 @@ async def _fetch_issues_resolved_by_release(
             for issue_data in closing_issue_refs:
                 if not issue_data["closed"]:
                     log.info(
-                        "Issue %s (related to PR %s) is not closed, skipping...",
+                        "Issue %s (related to PR %s) is not closed. Skipping...",
                         issue_data["number"],
                         associated_pr_data["number"],
                     )
                     continue
 
-                if _has_resolution_fix_committed(issue_data, associated_pr_data):
+                closer_data = issue_data["timelineItems"]["nodes"][0]["closer"]
+                if closer_data is None:
+                    log.info(
+                        "Issue %s (related to PR %s) was not closed by a PR. Skipping...",
+                        issue_data["number"],
+                        associated_pr_data["number"],
+                    )
+                elif "number" not in closer_data:
+                    log.info(
+                        "Issue %s (related to PR %s) was closed by a commit, not a PR."
+                        " Skipping...",
+                        issue_data["number"],
+                        associated_pr_data["number"],
+                    )
+                elif closer_data["number"] != associated_pr_data["number"]:
+                    log.info(
+                        "Issue %s (related to PR %s) was closed by a different PR (%s)."
+                        " Skipping...",
+                        issue_data["number"],
+                        associated_pr_data["number"],
+                        closer_data["number"],
+                    )
+                elif _has_resolution_fix_committed(issue_data, associated_pr_data):
                     issue_numbers_to_label.append(issue_data["number"])
                     operations.append({"labelable_id": json.dumps(issue_data["id"])})
 
