@@ -5,7 +5,8 @@ import enum
 import logging
 import os
 import subprocess
-from collections.abc import Callable, Mapping, MutableMapping
+from collections import ChainMap
+from collections.abc import Callable, Generator, Mapping, MutableMapping
 from typing import Any, Optional, TypeVar
 
 import aiohttp
@@ -264,6 +265,53 @@ async def get_pr_data_for_check_run(
                 return None, head_sha
 
     return pr_data, head_sha
+
+
+class GraphQLOperationType(enum.Enum):
+    QUERY = "query"
+    MUTATION = "mutation"
+
+
+class GraphQLMultiOperationCallBuilder:
+    """
+    An attempt to simplify building multi-operation GraphQL calls.
+
+    Not particularly well though out but it will have to do
+    until someone comes up with something better.
+    """
+
+    def __init__(
+        self,
+        *,
+        operation_type: GraphQLOperationType,
+        template: str,
+        operations: list[dict[str, Any]],
+        per_call_limit: int = 25,
+        common_substitutions: Mapping[str, Any] = {},
+    ) -> None:
+        self.operation_type = operation_type
+        self.template = template
+        self.operations = operations
+        self.per_call_limit = per_call_limit
+        self.common_substitutions = common_substitutions
+
+    def iter_calls(self) -> Generator[str, None, None]:
+        context = {"id": 0}
+        substitutions: ChainMap[str, Any] = ChainMap({}, context)
+        parts: list[str] = []
+        for idx, substitutions.maps[0] in enumerate(self.operations):
+            context["id"] = idx
+            if len(parts) == self.per_call_limit:
+                yield self._get_call_from_parts(parts)
+                parts = []
+            parts.append(self.template % substitutions)
+
+        if parts:
+            yield self._get_call_from_parts(parts)
+
+    def _get_call_from_parts(self, parts: list[str]) -> str:
+        joined_parts = "\n".join(parts)
+        return f"{self.operation_type.value} {{\n{joined_parts}\n}}"
 
 
 def normalize_title(title: str, body: str) -> str:
