@@ -66,7 +66,7 @@ async def backport_pr(event: sansio.Event) -> None:
             f" to ({', '.join(unsupported_branches)}) seem to not be maintenance branches."
             " Please consider reporting this to Red-GitHubBot's issue tracker"
             " and backport using [cherry_picker](https://pypi.org/project/cherry-picker/)"
-            " on command line."
+            " on command line.\n"
             "```\n"
             f"cherry_picker {commit_hash} {branch}\n"
             "```",
@@ -107,7 +107,7 @@ async def backport_task(
                 pr_number,
                 f"Sorry @{sender}, I had trouble checking out the `{branch}` backport branch."
                 " Please backport using [cherry_picker](https://pypi.org/project/cherry-picker/)"
-                " on command line."
+                " on command line.\n"
                 "```\n"
                 f"cherry_picker {commit_hash} {branch}\n"
                 "```",
@@ -120,7 +120,7 @@ async def backport_task(
                 " due to a conflict."
                 " Please backport using [cherry_picker](https://pypi.org/project/cherry-picker/)"
                 " on command line.\n"
-                "```"
+                "```\n"
                 f"cherry_picker {commit_hash} {branch}\n"
                 "```",
             )
@@ -132,7 +132,7 @@ async def backport_task(
                 f"Please retry by removing and re-adding the **Needs Backport To {branch}** label."
                 "If this issue persist, please report this to Red-GitHubBot's issue tracker"
                 " and backport using [cherry_picker](https://pypi.org/project/cherry-picker/)"
-                " on command line."
+                " on command line.\n"
                 "```\n"
                 f"cherry_picker {commit_hash} {branch}\n"
                 "```",
