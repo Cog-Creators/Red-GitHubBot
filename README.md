@@ -39,9 +39,7 @@ GitHub bot which helps out on [Red-DiscordBot's repository](https://github.com/C
 - Auto-apply **Resolution: Fix Committed** and **Resolution: Fix Released** labels
 
     The bot auto-applies **Resolution: Fix Committed** label on the issues that were
-    closed by a PR, and auto-closes and labels issues that get linked
-    (either with "Linked issues" feature *or* with the "closes" keyword in the PR's body)
-    in merged PRs.
+    closed by a PR.
 
     On successful run of Publish Release workflow on the repository, the bot fetches all PRs
     that were made between previous tag and the newly tagged release, and auto-applies

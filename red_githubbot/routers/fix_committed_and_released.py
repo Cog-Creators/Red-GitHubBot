@@ -27,25 +27,6 @@ query getClosedEvent($owner: String! $name: String! $issue_number: Int!) {
   }
 }
 """.strip()
-GET_CLOSING_ISSUE_REFERENCES_QUERY = """
-query getClosingIssueReferences($owner: String! $name: String! $pr_number: Int!) {
-  repository(owner: $owner name: $name) {
-    pullRequest(number: $pr_number) {
-      closingIssuesReferences(last: 10) {
-        nodes {
-          number
-          closed
-          labels(last: 100) {
-            nodes {
-              name
-            }
-          }
-        }
-      }
-    }
-  }
-}
-""".strip()
 GET_PR_HISTORY_QUERY = """
 query getPRHistory(
   $owner: String!
@@ -133,68 +114,6 @@ async def _has_closer(gh: utils.GitHubAPI, *, issue_number: int) -> bool:
         GET_CLOSED_EVENT_QUERY, owner=UPSTREAM_USERNAME, name=REPO_NAME, issue_number=issue_number
     )
     return data["repository"]["issue"]["timelineItems"]["nodes"][0]["closer"] is not None
-
-
-@gh_router.register("pull_request", action="edited")
-async def check_merged_pr_body_for_new_closed_issues(event: sansio.Event) -> None:
-    """
-    Auto-close and apply resolution label on linked issues
-    of the already merged PR on body edit.
-    """
-    if "body" not in event.data["changes"] or not event.data["pull_request"]["merged"]:
-        return
-
-    installation_id = event.data["installation"]["id"]
-    gh = await utils.get_gh_client(installation_id)
-    await _update_issue_resolutions_from_pr(gh, pr_number=event.data["number"])
-
-
-@utils.interval_job(minutes=5)
-async def poll_new_connected_events() -> None:
-    """
-    Polls the Issue Events API for `connected` events as they do not trigger
-    the `pull_request.edited` event.
-
-    On `connected` event, it does the same action that is done
-    on `pull_request.edited` event here.
-    """
-    gh = await utils.get_gh_client()
-    issue_events_url = f"/repos/{UPSTREAM_REPO}/issues/events"
-    events = await gh.getitem(issue_events_url)
-    for event_data in events:
-        if latest_event_id >= event_data["id"]:
-            return
-        if event_data["event"] != "connected":
-            continue
-        issue_data = event_data["issue"]
-        if "pull_request" not in issue_data:
-            continue
-
-        await _update_issue_resolutions_from_pr(gh, pr_number=issue_data["number"])
-
-
-async def _update_issue_resolutions_from_pr(gh: utils.GitHubAPI, *, pr_number: int) -> None:
-    closing_issue_refs = await _get_closing_issue_refs(gh, pr_number=pr_number)
-    for issue_data in closing_issue_refs:
-        for label_data in issue_data["labels"]["nodes"]:
-            if label_data["name"].startswith("Resolution: "):
-                break
-        else:
-            issue_url = f"/repos/{UPSTREAM_REPO}/issues/{issue_data['number']}"
-            labels_url = f"{issue_url}/labels"
-            await gh.post(labels_url, data=["Resolution: Fix Committed"])
-            if not issue_data["closed"]:
-                await gh.patch(issue_url, data={"state": "closed"})
-
-
-async def _get_closing_issue_refs(gh: utils.GitHubAPI, *, pr_number: int) -> list[Any]:
-    data = await gh.graphql(
-        GET_CLOSING_ISSUE_REFERENCES_QUERY,
-        owner=UPSTREAM_USERNAME,
-        name=REPO_NAME,
-        pr_number=pr_number,
-    )
-    return data["repository"]["pullRequest"]["closingIssuesReferences"]["nodes"]
 
 
 @gh_router.register("workflow", action="completed")
