@@ -29,7 +29,7 @@ async def backport_pr(event: sansio.Event) -> None:
     gh = await utils.get_gh_client(installation_id)
 
     pr_number = event.data["pull_request"]["number"]
-    sender = event.data["sender"]
+    sender = event.data["sender"]["login"]
     created_by = event.data["pull_request"]["user"]["login"]
 
     commit_hash = event.data["pull_request"]["merge_commit_sha"]
