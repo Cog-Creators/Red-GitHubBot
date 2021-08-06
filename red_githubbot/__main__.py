@@ -17,6 +17,7 @@ def main() -> None:
         sentry_sdk.init(
             _sentry_dsn,
             release=os.environ["HEROKU_SLUG_COMMIT"],
+            traces_sample_rate=0.1,
             integrations=[PureEvalIntegration()],
         )
 
