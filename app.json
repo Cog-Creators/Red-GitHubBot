@@ -19,10 +19,6 @@
         },
         "GH_AUTH": {
             "description": "Personal access token for the machine account to be used by the bot."
-        },
-        "SENTRY_DSN": {
-            "description": "Sentry client key (DSN). You can find it in the 'Client Keys (DSN)' page in the Sentry project's settings.",
-            "required": false
         }
     }
 }

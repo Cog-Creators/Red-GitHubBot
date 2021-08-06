@@ -12,7 +12,7 @@ def main() -> None:
     if _sentry_dsn := os.environ.get("SENTRY_DSN"):
         import sentry_sdk  # pylint: disable=import-outside-toplevel
 
-        sentry_sdk.init(_sentry_dsn)
+        sentry_sdk.init(_sentry_dsn, release=os.environ["HEROKU_SLUG_COMMIT"])
 
     logging.basicConfig(
         format="[{levelname}] {name}: {message}",

@@ -72,13 +72,23 @@ Doesn't seem like much? Don't worry, we're still working on more!
 
     - Generate a private key in GitHub App's settings and copy the contents of downloaded key to `GH_PRIVATE_KEY` variable
     - Generate a personal access token for the bot's machine account and set it under `GH_AUTH` variable
-    - (optional) Set Sentry client key under `SENTRY_DSN` variable for error tracking.
     - Deploy the application
 1. Add a webhook to the GitHub App.
     - Use `https://{app_name}.herokuapp.com/webhook` as Webhook URL
     - Use the previously generated webhook secret (used in `GH_WEBHOOK_SECRET` variable) as Webhook secret
     - Save changes
 1. Install the App on selected repositories.
+
+### Sentry integration
+
+To enable Sentry integration, you need to:
+
+1. Enable [Dyno Metadata feature from Heroku Labs](https://devcenter.heroku.com/articles/dyno-metadata)
+1. Set Sentry client key under `SENTRY_DSN` variable for error tracking.
+
+    You can find this on the 'Client Keys (DSN)' page in the Sentry project's settings.
+
+1. Re-deploy the application
 
 ## License
 
