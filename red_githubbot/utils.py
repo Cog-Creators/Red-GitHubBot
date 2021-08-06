@@ -4,6 +4,7 @@ import datetime
 import enum
 import logging
 import os
+import subprocess
 from collections.abc import Callable, Mapping, MutableMapping
 from typing import Any, Optional, TypeVar
 
@@ -323,3 +324,22 @@ def interval_job(
         return func
 
     return decorator
+
+
+async def check_call(program: str, *args: str) -> None:
+    process = await asyncio.create_subprocess_exec(program, *args)
+    await process.wait()
+    if process.returncode:
+        raise subprocess.CalledProcessError(process.returncode, (program, *args))
+
+
+async def check_output(program: str, *args: str) -> str:
+    process = await asyncio.create_subprocess_exec(
+        program, *args, stdout=asyncio.subprocess.PIPE, text=True
+    )
+    stdout_data, stderr_data = await process.communicate()
+    stdout = stdout_data.decode().strip() if stdout_data is not None else None
+    stderr = stderr_data.decode().strip() if stderr_data is not None else None
+    if process.returncode:
+        raise subprocess.CalledProcessError(process.returncode, (program, *args), stdout, stderr)
+    return stdout
