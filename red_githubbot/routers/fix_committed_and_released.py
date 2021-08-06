@@ -160,7 +160,7 @@ async def _fetch_issues_resolved_by_release(
             GET_PR_HISTORY_QUERY,
             owner=UPSTREAM_USERNAME,
             name=REPO_NAME,
-            tag_name=tag_name,
+            tag_name=f"refs/tags/{tag_name}",
             after=after,
             since=previous_tag_date,
         )
