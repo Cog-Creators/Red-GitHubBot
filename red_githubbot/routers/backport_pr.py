@@ -124,17 +124,46 @@ async def backport_task(
                 f"cherry_picker {commit_hash} {branch}\n"
                 "```",
             )
+        except Exception:
+            await utils.leave_comment(
+                await utils.get_gh_client(installation_id),
+                pr_number,
+                f"Sorry, @{sender}, I'm having trouble backporting this to `{branch}`.\n"
+                f"Please retry by removing and re-adding the **Needs Backport To {branch}** label."
+                "If this issue persist, please report this to Red-GitHubBot's issue tracker"
+                " and backport using [cherry_picker](https://pypi.org/project/cherry-picker/)"
+                " on command line."
+                "```\n"
+                f"cherry_picker {commit_hash} {branch}\n"
+                "```",
+            )
+            raise
 
 
 def backport(*, commit_hash: str, branch: str) -> None:
-    cp = cherry_picker.CherryPicker(
+    cp = _get_cherry_picker(commit_hash=commit_hash, branch=branch)
+    try:
+        cp.backport()
+    except cherry_picker.BranchCheckoutException:
+        # We need to set the state to BACKPORT_PAUSED so that CherryPicker allows us to
+        # abort it, switch back to the default branch, and clean up the backport branch.
+        #
+        # Ideally, we would be able to do it in a less-hacky way but that will require some changes
+        # in the upstream, so for now this is probably the best we can do here.
+        cp.initial_state = cherry_picker.WORKFLOW_STATES.BACKPORT_PAUSED
+        cp.abort_cherry_pick()
+        raise
+    except cherry_picker.CherryPickException:
+        # We need to get a new CherryPicker here to get an up-to-date (PAUSED) state.
+        cp = _get_cherry_picker(commit_hash=commit_hash, branch=branch)
+        cp.abort_cherry_pick()
+        raise
+
+
+def _get_cherry_picker(*, commit_hash: str, branch: str) -> cherry_picker.CherryPicker:
+    return cherry_picker.CherryPicker(
         pr_remote="origin",
         commit_sha1=commit_hash,
         branches=[branch],
         config=CHERRY_PICKER_CONFIG,
     )
-    try:
-        cp.backport()
-    except Exception:
-        cp.abort_cherry_pick()
-        raise
