@@ -6,5 +6,5 @@ gidgethub
 mistune>=2.0.0rc1
 psycopg2
 regex
-sentry_sdk
+sentry_sdk[pure_eval]
 typing-extensions

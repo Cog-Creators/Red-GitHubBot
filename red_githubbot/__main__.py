@@ -10,9 +10,15 @@ log = logging.getLogger("red_githubbot")
 
 def main() -> None:
     if _sentry_dsn := os.environ.get("SENTRY_DSN"):
-        import sentry_sdk  # pylint: disable=import-outside-toplevel
+        # pylint: disable=import-outside-toplevel
+        import sentry_sdk
+        from sentry_sdk.integrations.pure_eval import PureEvalIntegration
 
-        sentry_sdk.init(_sentry_dsn, release=os.environ["HEROKU_SLUG_COMMIT"])
+        sentry_sdk.init(
+            _sentry_dsn,
+            release=os.environ["HEROKU_SLUG_COMMIT"],
+            integrations=[PureEvalIntegration()],
+        )
 
     logging.basicConfig(
         format="[{levelname}] {name}: {message}",
