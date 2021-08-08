@@ -10,57 +10,62 @@ from . import gh_router
 
 log = logging.getLogger(__name__)
 
-GET_CLOSED_EVENT_QUERY = """
-query getClosedEvent($owner: String! $name: String! $issue_number: Int!) {
-  repository(owner: $owner name: $name) {
-    issue(number: $issue_number) {
-      timelineItems(itemTypes: [CLOSED_EVENT] last: 1) {
-        nodes {
-          ... on ClosedEvent {
-            closer {
-              __typename
+GET_CLOSED_EVENT_QUERY = utils.minify_graphql_call(
+    """
+    query getClosedEvent($owner: String! $name: String! $issue_number: Int!) {
+      repository(owner: $owner name: $name) {
+        issue(number: $issue_number) {
+          timelineItems(itemTypes: [CLOSED_EVENT] last: 1) {
+            nodes {
+              ... on ClosedEvent {
+                closer {
+                  __typename
+                }
+              }
             }
           }
         }
       }
     }
-  }
-}
-""".strip()
-GET_PR_HISTORY_QUERY = """
-query getPRHistory(
-  $owner: String!
-  $name: String!
-  $tag_name: String!
-  $after: String
-  $since: GitTimestamp!
-) {
-  repository(owner: $owner name: $name) {
-    ref(qualifiedName: $tag_name) {
-      target {
-        ... on Commit {
-          # querying 99 costs 20 while querying 100 costs 22
-          history(first: 99 after: $after since: $since) {
-            nodes {
-              associatedPullRequests(first: 1) {
+    """
+)
+GET_PR_HISTORY_QUERY = utils.minify_graphql_call(
+    """
+    query getPRHistory(
+      $owner: String!
+      $name: String!
+      $tag_name: String!
+      $after: String
+      $since: GitTimestamp!
+    ) {
+      repository(owner: $owner name: $name) {
+        ref(qualifiedName: $tag_name) {
+          target {
+            ... on Commit {
+              # querying 99 costs 20 while querying 100 costs 22
+              history(first: 99 after: $after since: $since) {
                 nodes {
-                  number
-                  closingIssuesReferences(last: 10) {
+                  associatedPullRequests(first: 1) {
                     nodes {
-                      id
                       number
-                      closed
-                      labels(last: 100) {
+                      closingIssuesReferences(last: 10) {
                         nodes {
-                          name
-                        }
-                      }
-                      timelineItems(itemTypes: [CLOSED_EVENT] last: 1) {
-                        nodes {
-                          ... on ClosedEvent {
-                            closer {
-                              ... on PullRequest {
-                                number
+                          id
+                          number
+                          closed
+                          labels(last: 100) {
+                            nodes {
+                              name
+                            }
+                          }
+                          timelineItems(itemTypes: [CLOSED_EVENT] last: 1) {
+                            nodes {
+                              ... on ClosedEvent {
+                                closer {
+                                  ... on PullRequest {
+                                    number
+                                  }
+                                }
                               }
                             }
                           }
@@ -69,37 +74,38 @@ query getPRHistory(
                     }
                   }
                 }
+                pageInfo {
+                  hasNextPage
+                  endCursor
+                }
               }
-            }
-            pageInfo {
-              hasNextPage
-              endCursor
             }
           }
         }
       }
     }
-  }
-}
-""".strip()
-ADD_AND_REMOVE_LABELS_MUTATION_TMPL = """
-add%(id)s: addLabelsToLabelable(
-  input: {
-    labelIds: %(labels_to_add)s
-    labelableId: %(labelable_id)s
-  }
-) {
-  clientMutationId
-}
-remove%(id)s: removeLabelsFromLabelable(
-  input: {
-    labelIds: %(labels_to_remove)s
-    labelableId: %(labelable_id)s
-  }
-) {
-  clientMutationId
-}
-""".strip()
+    """
+)
+ADD_AND_REMOVE_LABELS_MUTATION_TMPL = utils.minify_graphql_call(
+    """
+    add%(id)s: addLabelsToLabelable(
+      input: {
+        labelIds: %(labels_to_add)s
+        labelableId: %(labelable_id)s
+      }
+    ) {
+      clientMutationId
+    }
+    remove%(id)s: removeLabelsFromLabelable(
+      input: {
+        labelIds: %(labels_to_remove)s
+        labelableId: %(labelable_id)s
+      }
+    ) {
+      clientMutationId
+    }
+    """
+)
 
 latest_event_id: int = 0
 

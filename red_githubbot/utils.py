@@ -314,6 +314,16 @@ class GraphQLMultiOperationCallBuilder:
         return f"{self.operation_type.value} {{\n{joined_parts}\n}}"
 
 
+def minify_graphql_call(call: str) -> str:
+    """
+    Minify GraphQL call.
+
+    Right now this just strips leading whitespace from all lines
+    which is enough to reduce size by ~50%.
+    """
+    return "\n".join(line.lstrip() for line in call.strip().splitlines())
+
+
 def normalize_title(title: str, body: str) -> str:
     """Normalize the title if it spills over into the PR's body."""
     if not (title.endswith("…") and body.startswith("…")):
