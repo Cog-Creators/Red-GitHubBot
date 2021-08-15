@@ -346,9 +346,7 @@ async def check_call(program: str, *args: str) -> None:
 
 
 async def check_output(program: str, *args: str) -> str:
-    process = await asyncio.create_subprocess_exec(
-        program, *args, stdout=asyncio.subprocess.PIPE, text=True
-    )
+    process = await asyncio.create_subprocess_exec(program, *args, stdout=asyncio.subprocess.PIPE)
     stdout_data, stderr_data = await process.communicate()
     stdout = stdout_data.decode().strip()
     stderr = stderr_data.decode().strip() if stderr_data is not None else None
