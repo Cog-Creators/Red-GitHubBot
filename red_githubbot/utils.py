@@ -338,6 +338,11 @@ def interval_job(
     return decorator
 
 
+async def call(program: str, *args: str) -> int:
+    process = await asyncio.create_subprocess_exec(program, *args)
+    return await process.wait()
+
+
 async def check_call(program: str, *args: str) -> None:
     process = await asyncio.create_subprocess_exec(program, *args)
     await process.wait()
