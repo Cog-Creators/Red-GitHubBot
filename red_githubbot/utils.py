@@ -350,7 +350,7 @@ async def check_output(program: str, *args: str) -> str:
         program, *args, stdout=asyncio.subprocess.PIPE, text=True
     )
     stdout_data, stderr_data = await process.communicate()
-    stdout = stdout_data.decode().strip() if stdout_data is not None else None
+    stdout = stdout_data.decode().strip()
     stderr = stderr_data.decode().strip() if stderr_data is not None else None
     if process.returncode:
         raise subprocess.CalledProcessError(process.returncode, (program, *args), stdout, stderr)
