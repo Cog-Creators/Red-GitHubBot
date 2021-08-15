@@ -2,10 +2,12 @@ import asyncio
 import dataclasses
 import datetime
 import enum
+import functools
 import logging
 import os
 import subprocess
-from collections.abc import Callable, Mapping, MutableMapping
+from collections.abc import Callable, Coroutine, Mapping, MutableMapping
+from contextlib import AbstractAsyncContextManager, AbstractContextManager
 from typing import Any, Optional, TypeVar
 
 import aiohttp
@@ -284,7 +286,7 @@ def normalize_title(title: str, body: str) -> str:
         return title[:-1] + body[1:].partition("\n")[0].rstrip("\r")
 
 
-_P = ParamSpec("P")
+_P = ParamSpec("_P")
 
 
 def add_job(func: Callable[_P, Any], *args: _P.args, **kwargs: _P.kwargs) -> Job:
@@ -298,7 +300,7 @@ def run_job_in(seconds: int, func: Callable[_P, Any], *args: _P.args, **kwargs: 
     )
 
 
-_T = TypeVar("_T", bound=Callable[[], Any])
+_NoArgsCallableT = TypeVar("_NoArgsCallableT", bound=Callable[[], Any])
 
 
 def interval_job(
@@ -309,8 +311,8 @@ def interval_job(
     hours: int = 0,
     minutes: int = 0,
     seconds: int = 0,
-) -> Callable[[_T], Any]:
-    def decorator(func: _T) -> _T:
+) -> Callable[[_NoArgsCallableT], Any]:
+    def decorator(func: _NoArgsCallableT) -> _NoArgsCallableT:
         nonlocal job_id
         if job_id is None:
             module_name = getattr(func, "__module__", None)
@@ -353,3 +355,34 @@ async def check_output(program: str, *args: str) -> str:
     if process.returncode:
         raise subprocess.CalledProcessError(process.returncode, (program, *args), stdout, stderr)
     return stdout
+
+
+_T = TypeVar("_T")
+
+
+def async_with_context(
+    context_manager: AbstractAsyncContextManager,
+) -> Callable[[Callable[_P, Coroutine[Any, Any, _T]]], Callable[_P, Coroutine[Any, Any, _T]]]:
+    def deco(func: Callable[_P, Coroutine[Any, Any, _T]]) -> Callable[_P, Coroutine[Any, Any, _T]]:
+        @functools.wraps(func)
+        async def inner(*args: _P.args, **kwargs: _P.kwargs) -> _T:
+            async with context_manager:
+                return await func(*args, **kwargs)
+
+        return inner
+
+    return deco
+
+
+def with_context(
+    context_manager: AbstractContextManager,
+) -> Callable[[Callable[_P, _T]], Callable[_P, _T]]:
+    def deco(func: Callable[_P, _T]) -> Callable[_P, _T]:
+        @functools.wraps(func)
+        def inner(*args: _P.args, **kwargs: _P.kwargs) -> _T:
+            with context_manager:
+                return func(*args, **kwargs)
+
+        return inner
+
+    return deco
