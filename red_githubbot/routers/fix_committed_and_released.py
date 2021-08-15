@@ -1,7 +1,7 @@
-import json
 import logging
 from typing import Any
 
+import graphql_builder
 from gidgethub import sansio
 
 from .. import utils
@@ -86,28 +86,32 @@ GET_PR_HISTORY_QUERY = utils.minify_graphql_call(
     }
     """
 )
-ADD_AND_REMOVE_LABELS_MUTATION_TMPL = utils.minify_graphql_call(
-    """
-    add%(id)s: addLabelsToLabelable(
-      input: {
-        labelIds: %(labels_to_add)s
-        labelableId: %(labelable_id)s
-      }
-    ) {
-      clientMutationId
-    }
-    remove%(id)s: removeLabelsFromLabelable(
-      input: {
-        labelIds: %(labels_to_remove)s
-        labelableId: %(labelable_id)s
-      }
-    ) {
-      clientMutationId
-    }
-    """
-)
 
-latest_event_id: int = 0
+
+class AddAndRemoveLabels(graphql_builder.OperationBuilder):
+    OPERATION_TYPE = graphql_builder.OperationType.MUTATION
+    MAX_COST = 50
+
+    class Mutation(graphql_builder.FieldBuilder):
+        COST = 2
+        TEMPLATE = """
+        add${unique_id}: addLabelsToLabelable(
+          input: {
+            labelIds: ${labels_to_add}
+            labelableId: ${labelable_id}
+          }
+        ) {
+          clientMutationId
+        }
+        remove${unique_id}: removeLabelsFromLabelable(
+          input: {
+            labelIds: ${labels_to_remove}
+            labelableId: ${labelable_id}
+          }
+        ) {
+          clientMutationId
+        }
+        """
 
 
 @gh_router.register("issue", action="closed")
@@ -159,19 +163,32 @@ async def apply_resolution_merged_on_release(event: sansio.Event) -> None:
     installation_id = event.data["installation"]["id"]
     gh = await utils.get_gh_client(installation_id)
 
-    operations = await _fetch_issues_resolved_by_release(
+    builder = await _fetch_issues_resolved_by_release(
         gh, tag_name=tag_name, previous_tag_date=previous_tag_date
     )
-    await _update_resolution_labels(gh, tag_name=tag_name, operations=operations)
+    await _update_resolution_labels(gh, tag_name=tag_name, builder=builder)
+
+
+async def _get_label_ids(gh: utils.GitHubAPI) -> dict[str, list[str]]:
+    labels = {}
+    labels_url = f"/repos/{UPSTREAM_REPO}/labels{{/name}}"
+    labels["labels_to_add"] = [
+        (await gh.getitem(labels_url, {"name": "Resolution: Fix Released"}))["node_id"]
+    ]
+    labels["labels_to_remove"] = [
+        (await gh.getitem(labels_url, {"name": "Resolution: Fix Committed"}))["node_id"]
+    ]
+    return labels
 
 
 async def _fetch_issues_resolved_by_release(
     gh: utils.GitHubAPI, *, tag_name: str, previous_tag_date: str
-) -> list[dict[str, str]]:
+) -> AddAndRemoveLabels:
     after = None
     has_next_page = True
     issue_numbers_to_label: list[int] = []
-    operations: list[dict[str, str]] = []
+    label_ids = await _get_label_ids(gh)
+    builder = AddAndRemoveLabels()
     while has_next_page:
         data = await gh.graphql(
             GET_PR_HISTORY_QUERY,
@@ -221,7 +238,7 @@ async def _fetch_issues_resolved_by_release(
                     )
                 elif _has_resolution_fix_committed(issue_data, associated_pr_data):
                     issue_numbers_to_label.append(issue_data["number"])
-                    operations.append({"labelable_id": json.dumps(issue_data["id"])})
+                    builder.Mutation.append(labelable_id=issue_data["id"], **label_ids)
 
         page_info = history["pageInfo"]
         after = page_info["endCursor"]
@@ -231,7 +248,7 @@ async def _fetch_issues_resolved_by_release(
         "Finished fetching issues resolved by release %s:\n%r", tag_name, issue_numbers_to_label
     )
 
-    return operations
+    return builder
 
 
 def _has_resolution_fix_committed(
@@ -270,26 +287,8 @@ def _has_resolution_fix_committed(
 
 
 async def _update_resolution_labels(
-    gh: utils.GitHubAPI, *, tag_name: str, operations: list[dict[str, Any]]
+    gh: utils.GitHubAPI, *, tag_name: str, builder: AddAndRemoveLabels
 ) -> None:
-    labels_url = f"/repos/{UPSTREAM_REPO}/labels{{/name}}"
-    labels_to_add = [
-        (await gh.getitem(labels_url, {"name": "Resolution: Fix Released"}))["node_id"]
-    ]
-    labels_to_remove = [
-        (await gh.getitem(labels_url, {"name": "Resolution: Fix Committed"}))["node_id"]
-    ]
-
-    builder = utils.GraphQLMultiOperationCallBuilder(
-        operation_type=utils.GraphQLOperationType.MUTATION,
-        template=ADD_AND_REMOVE_LABELS_MUTATION_TMPL,
-        operations=operations,
-        common_substitutions={
-            "labels_to_add": json.dumps(labels_to_add),
-            "labels_to_remove": json.dumps(labels_to_remove),
-        },
-    )
-
     for call in builder.iter_calls():
         await gh.graphql(call)
 
