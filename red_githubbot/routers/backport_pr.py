@@ -68,7 +68,7 @@ async def backport_pr(event: sansio.Event) -> None:
             " and backport using [cherry_picker](https://pypi.org/project/cherry-picker/)"
             " on command line.\n"
             "```\n"
-            f"cherry_picker {commit_hash} {branch}\n"
+            f"cherry_picker {commit_hash} <branches...>\n"
             "```",
         )
 
