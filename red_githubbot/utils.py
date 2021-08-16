@@ -268,6 +268,29 @@ async def get_pr_data_for_check_run(
     return pr_data, head_sha
 
 
+async def copy_over_labels(
+    gh: GitHubAPI,
+    *,
+    source_issue_data: dict[str, Any],
+    target_issue_number: int,
+    copyable_labels_prefixes: tuple[str] = (
+        "Type: ",
+        "Release Blocker",
+        "High Priority",
+        "Breaking Change",
+    ),
+) -> None:
+    """Copy over relevant labels from one issue/PR to another."""
+    labels = [
+        label_data["name"]
+        for label_data in source_issue_data["labels"]
+        if label_data["name"].startswith(copyable_labels_prefixes)
+    ]
+    if labels:
+        labels_url = f"/repos/{UPSTREAM_REPO}/issues/{target_issue_number}/labels"
+        await gh.post(labels_url, data=labels)
+
+
 def minify_graphql_call(call: str) -> str:
     """
     Minify GraphQL call.

@@ -10,7 +10,6 @@ from . import gh_router
 
 log = logging.getLogger(__name__)
 
-COPYABLE_LABELS_PREFIXES = ("Type: ", "Release Blocker", "High Priority", "Breaking Change")
 TITLE_RE = re.compile(r"\s*\[(?P<branch>\d+\.\d+)\].+\(#(?P<pr_number>\d+)\)")
 MAINTENANCE_BRANCH_TITLE_RE = re.compile(
     r"^\s*\[(?P<branch>\d+\.\d+)\].+?(\(#(?P<pr_number>\d+)\))?\s*$"
@@ -52,8 +51,8 @@ async def handle_backport_prs(event: sansio.Event) -> None:
         branch=branch,
         backport_pr_number=event.data["number"],
     )
-    await _copy_over_labels(
-        gh, original_pr_data=original_pr_data, backport_pr_number=event.data["number"]
+    await utils.copy_over_labels(
+        gh, source_issue_data=original_pr_data, target_issue_number=event.data["number"]
     )
 
 
@@ -79,20 +78,6 @@ async def _remove_backport_label(
         f" [Red {branch}](https://github.com/{UPSTREAM_REPO}/tree/{branch})."
     )
     await gh.post(original_pr_data["comments_url"], data={"body": message})
-
-
-async def _copy_over_labels(
-    gh: utils.GitHubAPI, *, original_pr_data: dict[str, Any], backport_pr_number: int
-) -> None:
-    """Copy over relevant labels from the original PR to the backport PR."""
-    labels = [
-        label_data["name"]
-        for label_data in original_pr_data["labels"]
-        if label_data["name"].startswith(COPYABLE_LABELS_PREFIXES)
-    ]
-    if labels:
-        labels_url = f"/repos/{UPSTREAM_REPO}/issues/{backport_pr_number}/labels"
-        await gh.post(labels_url, data=labels)
 
 
 @gh_router.register("pull_request", action="opened")
