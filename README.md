@@ -1,5 +1,6 @@
 # Red GitHub Bot
 
+[![Uptime](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2FCog-Creators%2FRed-Status%2Fmaster%2Fapi%2Fred-git-hub-bot%2Fuptime.json)](https://status.discord.red/)
 [![Discord Server](https://discordapp.com/api/guilds/133049272517001216/widget.png?style=shield)](https://discord.gg/red)
 [![Support Red on Patreon](https://img.shields.io/badge/Support-Red!-red.svg)](https://www.patreon.com/Red_Devs)
 [![Code Style: Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
