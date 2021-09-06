@@ -37,7 +37,7 @@ GitHub bot which helps out on [Red-DiscordBot's repository](https://github.com/C
     The bot reports the Blocked status for all PRs based on the PR's labels
     to avoid accidental merges of PRs that should not yet be merged.
 
-- Auto-apply **Resolution: Fix Committed** and **Resolution: Fix Released** labels
+- **[DISABLED]** Auto-apply **Resolution: Fix Committed** and **Resolution: Fix Released** labels
 
     The bot auto-applies **Resolution: Fix Committed** label on the issues that were
     closed by a PR.
