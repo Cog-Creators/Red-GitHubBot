@@ -62,7 +62,7 @@ Doesn't seem like much? Don't worry, we're still working on more!
 1. [Make a machine account](https://github.com/signup).
 1. Deploy the application to Heroku.
 
-    [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/jack1142/Red-GitHubBot)
+    [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/Cog-Creators/Red-GitHubBot)
 
     - Set GitHub App ID under `GH_APP_ID` variable
     - Generate a webhook secret and set it under `GH_WEBHOOK_SECRET` variable

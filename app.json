@@ -1,8 +1,8 @@
 {
     "name": "Red-GitHubBot",
     "description": "GitHub bot which helps out on Red-DiscordBot's repository.",
-    "website": "https://github.com/jack1142/Red-GitHubBot",
-    "repository": "https://github.com/jack1142/Red-GitHubBot",
+    "website": "https://github.com/Cog-Creators/Red-GitHubBot",
+    "repository": "https://github.com/Cog-Creators/Red-GitHubBot",
     "addons": [
         "heroku-postgresql:hobby-dev"
     ],
