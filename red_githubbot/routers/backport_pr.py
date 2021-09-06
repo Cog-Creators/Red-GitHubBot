@@ -5,13 +5,13 @@ from cherry_picker import cherry_picker
 from gidgethub import sansio
 
 from .. import utils
-from ..constants import MAINTENANCE_BRANCHES
+from ..constants import MAINTENANCE_BRANCHES, UPSTREAM_USERNAME
 from . import gh_router
 
 log = logging.getLogger(__name__)
 
 CHERRY_PICKER_CONFIG = {
-    "team": "jack1142",
+    "team": UPSTREAM_USERNAME,
     "repo": "Red-DiscordBot",
     "check_sha": "6251c585e4ec0a53813a9993ede3ab5309024579",
     "fix_commit_msg": False,
