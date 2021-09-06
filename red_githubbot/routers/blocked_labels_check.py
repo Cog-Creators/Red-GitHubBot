@@ -24,7 +24,7 @@ async def check_for_blocked_labels(event: sansio.Event) -> None:
     blocked_labels = [
         label_data
         for label_data in pr_data["labels"]
-        if label_data["name"] == "Blocked" or label_data["name"].startswith("Blocked by: ")
+        if label_data["name"] == "Blocked" or label_data["name"].startswith("Blocked By: ")
     ]
     if blocked_labels:
         conclusion = utils.CheckRunConclusion.FAILURE
