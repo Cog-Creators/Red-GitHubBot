@@ -74,7 +74,7 @@ async def backport_pr(event: sansio.Event) -> None:
 
     if branches:
         message = (
-            f"Thanks @{created_by} for the PR \N{PARTY POPPER}."
+            f"Thanks {created_by} for the PR \N{PARTY POPPER}."
             f" I'm working now to backport this PR to: {', '.join(branches)}."
         )
 
