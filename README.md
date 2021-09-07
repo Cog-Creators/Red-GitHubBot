@@ -47,6 +47,11 @@ GitHub bot which helps out on [Red-DiscordBot's repository](https://github.com/C
     and auto-applies **Resolution: Fix Released** label on the linked issues that were closed by
     that PR and had **Resolution: Fix Committed** label.
 
+- Auto-apply **Changelog Entry: Pending** label on PRs merged to `V3/develop`
+
+    The bot auto-applies **Changelong Entry: Pending** label on the PRs that were
+    merged to `V3/develop` branch if there is no other **Changelon Entry** label on it already.
+
 Doesn't seem like much? Don't worry, we're still working on more!
 
 ## Deployment
