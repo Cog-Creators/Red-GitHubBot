@@ -24,7 +24,7 @@ from .constants import MACHINE_USERNAME, REQUESTER, UPSTREAM_REPO
 
 log = logging.getLogger(__name__)
 
-DB_ERRORS = (psycopg2.OperationError,)
+DB_ERRORS = (psycopg2.OperationalError,)
 git_lock = asyncio.Lock()
 session = aiohttp.ClientSession()
 
