@@ -85,14 +85,24 @@ async def backport_pr(event: sansio.Event) -> None:
         )
 
         for branch in sorted_branches:
-            utils.add_job(
-                backport_task,
-                installation_id=installation_id,
-                commit_hash=commit_hash,
-                branch=branch,
-                pr_number=pr_number,
-                sender=sender,
-            )
+            try:
+                utils.add_job(
+                    backport_task,
+                    installation_id=installation_id,
+                    commit_hash=commit_hash,
+                    branch=branch,
+                    pr_number=pr_number,
+                    sender=sender,
+                )
+            except utils.DB_ERRORS as exc:
+                await utils.leave_comment(
+                    gh,
+                    pr_number,
+                    f"I'm having trouble backporting to `{branch}`.\n"
+                    f"Reason '`{exc}`'.\n"
+                    f"Please retry by removing and re-adding the"
+                    f" `Needs Backport To {branch}` label.",
+                )
 
 
 async def backport_task(
