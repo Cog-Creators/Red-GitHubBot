@@ -13,7 +13,7 @@ from typing import Any, Optional, TypeVar
 import aiohttp
 import cachetools
 import mistune
-import psycopg2
+import sqlalchemy.exc
 from apscheduler.job import Job
 from apscheduler.triggers.interval import IntervalTrigger
 from gidgethub import aiohttp as gh_aiohttp, apps, sansio
@@ -24,7 +24,7 @@ from .constants import MACHINE_USERNAME, REQUESTER, UPSTREAM_REPO
 
 log = logging.getLogger(__name__)
 
-DB_ERRORS = (psycopg2.OperationalError,)
+DB_ERRORS = (sqlalchemy.exc.OperationalError,)
 git_lock = asyncio.Lock()
 session = aiohttp.ClientSession()
 
