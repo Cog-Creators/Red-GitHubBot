@@ -5,7 +5,7 @@ from cherry_picker import cherry_picker
 from gidgethub import sansio
 
 from .. import utils
-from ..constants import MAINTENANCE_BRANCHES, UPSTREAM_USERNAME
+from ..constants import MAINTENANCE_BRANCHES, UPSTREAM_REPO, UPSTREAM_USERNAME
 from . import gh_router
 
 log = logging.getLogger(__name__)
@@ -32,6 +32,7 @@ async def backport_pr(event: sansio.Event) -> None:
     sender = event.data["sender"]["login"]
     created_by = event.data["pull_request"]["user"]["login"]
 
+    head_sha = event.data["pull_request"]["head"]["sha"]
     commit_hash = event.data["pull_request"]["merge_commit_sha"]
 
     pr_labels = []
@@ -73,6 +74,13 @@ async def backport_pr(event: sansio.Event) -> None:
         )
 
     if branches:
+        check_run_id = await utils.post_check_run(
+            gh,
+            name=f"Backport to {branch}",
+            head_sha=head_sha,
+            status=utils.CheckRunStatus.IN_PROGRESS,
+        )
+
         message = (
             f"Thanks {created_by} for the PR \N{PARTY POPPER}."
             f" I'm working now to backport this PR to: {', '.join(branches)}."
@@ -93,6 +101,7 @@ async def backport_pr(event: sansio.Event) -> None:
                     branch=branch,
                     pr_number=pr_number,
                     sender=sender,
+                    check_run_id=check_run_id,
                 )
             except utils.DB_ERRORS as exc:
                 await utils.leave_comment(
@@ -106,38 +115,49 @@ async def backport_pr(event: sansio.Event) -> None:
 
 
 async def backport_task(
-    *, installation_id: int, commit_hash: str, branch: str, pr_number: int, sender: str
+    *,
+    installation_id: int,
+    commit_hash: str,
+    branch: str,
+    pr_number: int,
+    sender: str,
+    check_run_id: int,
 ) -> None:
     async with utils.git_lock:
+        gh = await utils.get_gh_client(installation_id)
         try:
-            await asyncio.to_thread(backport, commit_hash=commit_hash, branch=branch)
+            cp = await asyncio.to_thread(backport, commit_hash=commit_hash, branch=branch)
         except cherry_picker.BranchCheckoutException:
-            await utils.leave_comment(
-                await utils.get_gh_client(installation_id),
-                pr_number,
+            summary = (
                 f"Sorry @{sender}, I had trouble checking out the `{branch}` backport branch."
                 " Please backport using [cherry_picker](https://pypi.org/project/cherry-picker/)"
                 " on command line.\n"
                 "```\n"
                 f"cherry_picker {commit_hash} {branch}\n"
-                "```",
+                "```"
             )
+            conclusion = utils.CheckRunConclusion.FAILURE
+            output = utils.CheckRunOutput(
+                title="Failed to backport due to checkout failure.", summary=summary
+            )
+            await utils.leave_comment(gh, pr_number, summary)
         except cherry_picker.CherryPickException:
-            await utils.leave_comment(
-                await utils.get_gh_client(installation_id),
-                pr_number,
+            summary = (
                 f"Sorry, @{sender}, I could not cleanly backport this to `{branch}`"
                 " due to a conflict."
                 " Please backport using [cherry_picker](https://pypi.org/project/cherry-picker/)"
                 " on command line.\n"
                 "```\n"
                 f"cherry_picker {commit_hash} {branch}\n"
-                "```",
+                "```"
             )
+            conclusion = utils.CheckRunConclusion.FAILURE
+            output = utils.CheckRunOutput(
+                title="Failed to backport due to a conflict.", summary=summary
+            )
+            await utils.leave_comment(gh, pr_number, summary)
         except Exception:
-            await utils.leave_comment(
-                await utils.get_gh_client(installation_id),
-                pr_number,
+            summary = (
                 f"Sorry, @{sender}, I'm having trouble backporting this to `{branch}`.\n"
                 f"Please retry by removing and re-adding the **Needs Backport To {branch}** label."
                 "If this issue persist, please report this to Red-GitHubBot's issue tracker"
@@ -147,10 +167,35 @@ async def backport_task(
                 f"cherry_picker {commit_hash} {branch}\n"
                 "```",
             )
+            conclusion = utils.CheckRunConclusion.FAILURE
+            output = utils.CheckRunOutput(
+                title="Failed to backport due to an unexpected error.", summary=summary
+            )
+            await utils.leave_comment(gh, pr_number, summary)
+            await utils.patch_check_run(
+                gh,
+                check_run_id=check_run_id,
+                conclusion=utils.CheckRunConclusion.FAILURE,
+                output=output,
+            )
             raise
+        else:
+            conclusion = utils.CheckRunConclusion.SUCCESS
+            output = utils.CheckRunOutput(
+                title=f"Backport PR (#{cp.pr_number}) created.",
+                summary=(
+                    f"#{cp.pr_number} is a backport of this pull request to"
+                    f" [Red {branch}](https://github.com/{UPSTREAM_REPO}/tree/{branch})."
+                ),
+                details_url=f"https://github.com/{UPSTREAM_REPO}/pull/{cp.pr_number}",
+            )
+
+    await utils.patch_check_run(
+        gh, check_run_id=check_run_id, conclusion=conclusion, output=output
+    )
 
 
-def backport(*, commit_hash: str, branch: str) -> None:
+def backport(*, commit_hash: str, branch: str) -> cherry_picker.CherryPicker:
     cp = _get_cherry_picker(commit_hash=commit_hash, branch=branch)
     try:
         cp.backport()
@@ -168,6 +213,7 @@ def backport(*, commit_hash: str, branch: str) -> None:
         cp = _get_cherry_picker(commit_hash=commit_hash, branch=branch)
         cp.abort_cherry_pick()
         raise
+    return cp
 
 
 def _get_cherry_picker(*, commit_hash: str, branch: str) -> cherry_picker.CherryPicker:
