@@ -182,7 +182,7 @@ async def post_check_run(
     conclusion: Optional[CheckRunConclusion] = None,
     details_url: Optional[str] = None,
     output: Optional[CheckRunOutput] = None,
-) -> None:
+) -> int:
     check_run_url = f"/repos/{UPSTREAM_REPO}/check-runs"
     data: dict[str, Any] = {"name": name, "head_sha": head_sha}
     if status is not None:
@@ -196,7 +196,7 @@ async def post_check_run(
     if output is not None:
         data["output"] = output.to_dict()
 
-    await gh.post(check_run_url, data=data)
+    return (await gh.post(check_run_url, data=data))["id"]
 
 
 async def get_open_pr_for_commit(
