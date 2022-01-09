@@ -26,7 +26,7 @@ chardet==4.0.0
     # via aiohttp
 charset-normalizer==2.0.3
     # via requests
-git+https://github.com/jack1142/cherry-picker.git@issue/439#egg=cherry_picker
+git+https://github.com/jack1142/cherry-picker.git@red-githubbot#egg=cherry_picker
     # via -r requirements.in
 click==8.0.1
     # via cherry-picker
