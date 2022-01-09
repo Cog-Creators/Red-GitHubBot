@@ -199,6 +199,31 @@ async def post_check_run(
     return (await gh.post(check_run_url, data=data))["id"]
 
 
+async def patch_check_run(
+    gh: GitHubAPI,
+    *,
+    check_run_id: int,
+    status: Optional[CheckRunStatus] = None,
+    conclusion: Optional[CheckRunConclusion] = None,
+    details_url: Optional[str] = None,
+    output: Optional[CheckRunOutput] = None,
+) -> None:
+    check_run_updates_url = f"/repos/{UPSTREAM_REPO}/check-runs/{check_run_id}"
+    data = {}
+    if status is not None:
+        if conclusion is not None and status is not CheckRunStatus.COMPLETED:
+            raise RuntimeError("`status` needs to be `COMPLETED` when `conclusion` is provided.")
+        data["status"] = status.value
+    if conclusion is not None:
+        data["conclusion"] = conclusion.value
+    if details_url is not None:
+        data["details_url"] = details_url
+    if output is not None:
+        data["output"] = output.to_dict()
+
+    await gh.patch(check_run_updates_url, data=data)
+
+
 async def get_open_pr_for_commit(
     gh: GitHubAPI, sha: str, *, get_pr_data: bool = False
 ) -> Optional[dict[str, Any]]:
