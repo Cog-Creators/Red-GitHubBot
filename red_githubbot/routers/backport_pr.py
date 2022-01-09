@@ -30,7 +30,6 @@ async def backport_pr(event: sansio.Event) -> None:
 
     pr_number = event.data["pull_request"]["number"]
     sender = event.data["sender"]["login"]
-    created_by = event.data["pull_request"]["user"]["login"]
 
     head_sha = event.data["pull_request"]["head"]["sha"]
     commit_hash = event.data["pull_request"]["merge_commit_sha"]
@@ -80,13 +79,6 @@ async def backport_pr(event: sansio.Event) -> None:
             head_sha=head_sha,
             status=utils.CheckRunStatus.IN_PROGRESS,
         )
-
-        message = (
-            f"Thanks {created_by} for the PR \N{PARTY POPPER}."
-            f" I'm working now to backport this PR to: {', '.join(branches)}."
-        )
-
-        await utils.leave_comment(gh, pr_number, message)
 
         sorted_branches = sorted(
             branches, reverse=True, key=lambda v: tuple(map(int, v.split(".")))
