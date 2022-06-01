@@ -56,6 +56,7 @@ async def webhook(request: web.Request) -> web.Response:
 
 
 async def on_startup(app: web.Application) -> None:
+    await utils.on_startup(app)
     await tasks.on_startup(app)
 
 

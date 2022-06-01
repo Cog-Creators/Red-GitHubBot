@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import asyncio
 import dataclasses
 import datetime
@@ -14,6 +16,7 @@ import aiohttp
 import cachetools
 import mistune
 import sqlalchemy.exc
+from aiohttp import web
 from apscheduler.job import Job
 from apscheduler.triggers.interval import IntervalTrigger
 from gidgethub import aiohttp as gh_aiohttp, apps, sansio
@@ -26,7 +29,8 @@ log = logging.getLogger(__name__)
 
 DB_ERRORS = (sqlalchemy.exc.OperationalError,)
 git_lock = asyncio.Lock()
-session = aiohttp.ClientSession()
+session: aiohttp.ClientSession
+machine_gh: GitHubAPI
 
 _gh_cache: MutableMapping[Any, Any] = cachetools.LRUCache(maxsize=500)
 _gh_installation_tokens_cache: MutableMapping[int, str] = cachetools.TTLCache(
@@ -37,6 +41,14 @@ gh_installation_id_cache: MutableMapping[str, int] = cachetools.LRUCache(100)
 parse_markdown = mistune.create_markdown(
     renderer="ast", plugins=("strikethrough", "table", "task_lists")
 )
+
+
+async def on_startup(app: web.Application) -> None:
+    global machine_gh, session
+    session = aiohttp.ClientSession()
+    machine_gh = GitHubAPI(
+        f"{MACHINE_USERNAME} (Machine account)", oauth_token=os.environ.get("GH_AUTH")
+    )
 
 
 class GitHubAPI(gh_aiohttp.GitHubAPI):
@@ -80,11 +92,6 @@ class GitHubAPI(gh_aiohttp.GitHubAPI):
                 rate_limit.reset_datetime,
             )
         return ret
-
-
-machine_gh = GitHubAPI(
-    f"{MACHINE_USERNAME} (Machine account)", oauth_token=os.environ.get("GH_AUTH")
-)
 
 
 class CheckRunStatus(enum.Enum):
