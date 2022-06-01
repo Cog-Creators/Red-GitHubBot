@@ -117,6 +117,7 @@ async def backport_task(
 ) -> None:
     async with utils.git_lock:
         gh = await utils.get_gh_client(installation_id)
+        details_url = None
         try:
             cp = await asyncio.to_thread(backport, commit_hash=commit_hash, branch=branch)
         except cherry_picker.BranchCheckoutException:
@@ -179,11 +180,15 @@ async def backport_task(
                     f"#{cp.pr_number} is a backport of this pull request to"
                     f" [Red {branch}](https://github.com/{UPSTREAM_REPO}/tree/{branch})."
                 ),
-                details_url=f"https://github.com/{UPSTREAM_REPO}/pull/{cp.pr_number}",
             )
+            details_url = f"https://github.com/{UPSTREAM_REPO}/pull/{cp.pr_number}"
 
     await utils.patch_check_run(
-        gh, check_run_id=check_run_id, conclusion=conclusion, output=output
+        gh,
+        check_run_id=check_run_id,
+        conclusion=conclusion,
+        output=output,
+        details_url=details_url,
     )
 
 
