@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import os
 
@@ -27,8 +28,8 @@ def main() -> None:
         level=logging.INFO,
     )
     port = int(os.environ.get("PORT", 8080))
-    # in aiohttp 4.0, we will need to pass `loop` kwarg here
-    web.run_app(web_app, port=port)
+    loop = asyncio.get_event_loop()
+    web.run_app(web_app, port=port, loop=loop)
 
 
 if __name__ == "__main__":
