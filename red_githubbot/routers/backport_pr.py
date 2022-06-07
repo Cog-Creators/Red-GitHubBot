@@ -21,6 +21,7 @@ CHERRY_PICKER_CONFIG = {
 
 @gh_router.register("pull_request", action="closed")
 @gh_router.register("pull_request", action="labeled")
+@utils.github_rate_limiter()
 async def backport_pr(event: sansio.Event) -> None:
     if not event.data["pull_request"]["merged"]:
         return
@@ -115,7 +116,7 @@ async def backport_task(
     sender: str,
     check_run_id: int,
 ) -> None:
-    async with utils.git_lock:
+    async with utils.git_lock, utils.github_rate_limiter():
         gh = await utils.get_gh_client(installation_id)
         details_url = None
         try:

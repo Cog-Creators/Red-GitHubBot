@@ -8,12 +8,13 @@ import functools
 import logging
 import os
 import subprocess
-from collections.abc import Callable, Coroutine, Mapping, MutableMapping
-from contextlib import AbstractAsyncContextManager, AbstractContextManager
+from collections.abc import Callable, Coroutine, Generator, Mapping, MutableMapping
+from contextlib import AbstractAsyncContextManager, AbstractContextManager, asynccontextmanager
 from typing import Any, Optional, TypeVar
 
 import aiohttp
 import cachetools
+import gidgethub
 import mistune
 import sqlalchemy.exc
 from aiohttp import web
@@ -60,6 +61,17 @@ class GitHubAPI(gh_aiohttp.GitHubAPI):
         """
         self.client_name = client_name
         super().__init__(session, REQUESTER, cache=_gh_cache, oauth_token=oauth_token)
+
+    async def _make_request(
+        self, method: str, *args: Any, **kwargs: Any
+    ) -> tuple[bytes, Optional[str]]:
+        async with github_rate_limiter(should_sleep=method != "GET"):
+            try:
+                return await super()._make_request(method, *args, **kwargs)
+            except gidgethub.RateLimitExceeded as exc:
+                sleep_delta = exc.reset_datetime - datetime.datetime.now(datetime.timezone.utc)
+                await self.sleep(sleep_delta.total_seconds())
+                return await super()._make_request(method, *args, **kwargs)
 
     async def _request(
         self, method: str, url: str, headers: Mapping[str, str], body: bytes = b""
@@ -446,3 +458,33 @@ def with_context(
         return inner
 
     return deco
+
+
+_gh_lock = asyncio.Lock()
+# allows re-entrance without sleep
+_gh_lock_owner = None
+# whether a sleep was requested by current owner
+_gh_lock_should_sleep = False
+
+
+@asynccontextmanager
+async def github_rate_limiter(*, should_sleep: bool = True) -> Generator[None, None, None]:
+    global _gh_lock_owner, _gh_lock_should_sleep
+    current_task = asyncio.current_task()
+    if _gh_lock_owner is current_task:
+        _gh_lock_should_sleep |= should_sleep
+        return
+
+    await _gh_lock.acquire()
+    try:
+        _gh_lock_should_sleep |= should_sleep
+        _gh_lock_owner = current_task
+        yield
+    finally:
+        _gh_lock_owner = None
+        should_sleep = _gh_lock_should_sleep
+        _gh_lock_should_sleep = False
+        if should_sleep:
+            asyncio.get_running_loop().call_later(1, _gh_lock.release)
+        else:
+            _gh_lock.release()
