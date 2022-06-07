@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Any
 
 import regex
 
@@ -44,7 +44,7 @@ def _parse_text(issue: ParsedIssue, text: str) -> None:
 
 
 def _parse_link(
-    issue: ParsedIssue, *, previous_node: Optional[dict[str, Any]], node: dict[str, Any]
+    issue: ParsedIssue, *, previous_node: dict[str, Any] | None, node: dict[str, Any]
 ) -> None:
     match = ISSUE_URL_RE.match(node["link"])
     if match is None:
@@ -59,7 +59,7 @@ def _parse_link(
 
 
 def _append_parsed_ref(
-    issue: ParsedIssue, *, match: regex.Match[str], keyword_name: Optional[str]
+    issue: ParsedIssue, *, match: regex.Match[str], keyword_name: str | None
 ) -> None:
     issue_number = int(match.group("issue_number"))
     slug = match.group("slug")

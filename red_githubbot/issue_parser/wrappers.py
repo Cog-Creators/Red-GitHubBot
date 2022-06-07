@@ -1,6 +1,5 @@
 from collections.abc import Iterable
 from dataclasses import InitVar, dataclass, field
-from typing import Optional
 
 
 @dataclass
@@ -10,7 +9,7 @@ class ParsedIssueFragment:
 
 @dataclass
 class ParsedIssueRef(ParsedIssueFragment):
-    slug: Optional[str]
+    slug: str | None
     issue_number: int
 
 

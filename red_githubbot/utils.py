@@ -10,7 +10,7 @@ import os
 import subprocess
 from collections.abc import Callable, Coroutine, Generator, Mapping, MutableMapping
 from contextlib import AbstractAsyncContextManager, AbstractContextManager, asynccontextmanager
-from typing import Any, Optional, TypeVar
+from typing import Any, TypeVar
 
 import aiohttp
 import cachetools
@@ -53,7 +53,7 @@ async def on_startup(app: web.Application) -> None:
 
 
 class GitHubAPI(gh_aiohttp.GitHubAPI):
-    def __init__(self, client_name: str, *, oauth_token: Optional[str] = None) -> None:
+    def __init__(self, client_name: str, *, oauth_token: str | None = None) -> None:
         """
         GitHub API client that logs current rate limit status after each request.
 
@@ -64,7 +64,7 @@ class GitHubAPI(gh_aiohttp.GitHubAPI):
 
     async def _make_request(
         self, method: str, *args: Any, **kwargs: Any
-    ) -> tuple[bytes, Optional[str]]:
+    ) -> tuple[bytes, str | None]:
         async with github_rate_limiter(should_sleep=method != "GET"):
             try:
                 return await super()._make_request(method, *args, **kwargs)
@@ -130,7 +130,7 @@ def _noneless_dict_factory(result: list[tuple[str, Any]]) -> dict[str, Any]:
 class CheckRunOutput:
     title: str
     summary: str
-    text: Optional[str] = None
+    text: str | None = None
     # Output can also contain `annotations` and `images` but they can always be added in the future
 
     def to_dict(self) -> dict[str, Any]:
@@ -138,7 +138,7 @@ class CheckRunOutput:
 
 
 async def get_gh_client(
-    installation_id: Optional[int] = None, *, slug: str = UPSTREAM_REPO
+    installation_id: int | None = None, *, slug: str = UPSTREAM_REPO
 ) -> GitHubAPI:
     if installation_id is None:
         installation_id = await get_installation_id_by_repo(slug)
@@ -197,10 +197,10 @@ async def post_check_run(
     *,
     name: str,
     head_sha: str,
-    status: Optional[CheckRunStatus] = None,
-    conclusion: Optional[CheckRunConclusion] = None,
-    details_url: Optional[str] = None,
-    output: Optional[CheckRunOutput] = None,
+    status: CheckRunStatus | None = None,
+    conclusion: CheckRunConclusion | None = None,
+    details_url: str | None = None,
+    output: CheckRunOutput | None = None,
 ) -> int:
     check_run_url = f"/repos/{UPSTREAM_REPO}/check-runs"
     data: dict[str, Any] = {"name": name, "head_sha": head_sha}
@@ -222,10 +222,10 @@ async def patch_check_run(
     gh: GitHubAPI,
     *,
     check_run_id: int,
-    status: Optional[CheckRunStatus] = None,
-    conclusion: Optional[CheckRunConclusion] = None,
-    details_url: Optional[str] = None,
-    output: Optional[CheckRunOutput] = None,
+    status: CheckRunStatus | None = None,
+    conclusion: CheckRunConclusion | None = None,
+    details_url: str | None = None,
+    output: CheckRunOutput | None = None,
 ) -> None:
     check_run_updates_url = f"/repos/{UPSTREAM_REPO}/check-runs/{check_run_id}"
     data = {}
@@ -245,7 +245,7 @@ async def patch_check_run(
 
 async def get_open_pr_for_commit(
     gh: GitHubAPI, sha: str, *, get_pr_data: bool = False
-) -> Optional[dict[str, Any]]:
+) -> dict[str, Any] | None:
     """
     Get the most recently updated open PR associated with the given commit.
 
@@ -281,7 +281,7 @@ async def get_pr_data_for_check_run(
     event: sansio.Event,
     check_run_name: str,
     get_pr_data: bool = False,
-) -> tuple[Optional[dict[str, Any]], str]:
+) -> tuple[dict[str, Any] | None, str]:
     if event.event == "pull_request":
         pr_data = event.data["pull_request"]
         head_sha = pr_data["head"]["sha"]
@@ -373,7 +373,7 @@ _NoArgsCallableT = TypeVar("_NoArgsCallableT", bound=Callable[[], Any])
 
 
 def interval_job(
-    job_id: Optional[str] = None,
+    job_id: str | None = None,
     *,
     weeks: int = 0,
     days: int = 0,
