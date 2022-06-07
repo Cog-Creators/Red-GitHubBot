@@ -88,8 +88,6 @@ sqlalchemy==1.4.37
     # via apscheduler
 toml==0.10.2
     # via cherry-picker
-typing-extensions==4.2.0
-    # via -r requirements.in
 tzdata==2022.1
     # via
     #   pytz-deprecation-shim

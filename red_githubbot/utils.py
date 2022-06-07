@@ -10,7 +10,7 @@ import os
 import subprocess
 from collections.abc import Callable, Coroutine, Generator, Mapping, MutableMapping
 from contextlib import AbstractAsyncContextManager, AbstractContextManager, asynccontextmanager
-from typing import Any, TypeVar
+from typing import Any, ParamSpec, TypeVar
 
 import aiohttp
 import cachetools
@@ -21,7 +21,6 @@ from aiohttp import web
 from apscheduler.job import Job
 from apscheduler.triggers.interval import IntervalTrigger
 from gidgethub import aiohttp as gh_aiohttp, apps, sansio
-from typing_extensions import ParamSpec
 
 from . import tasks
 from .constants import MACHINE_USERNAME, REQUESTER, UPSTREAM_REPO
