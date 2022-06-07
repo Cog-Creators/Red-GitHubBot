@@ -1,4 +1,3 @@
-import asyncio
 import logging
 import os
 
@@ -28,8 +27,7 @@ def main() -> None:
         level=logging.INFO,
     )
     port = int(os.environ.get("PORT", 8080))
-    loop = asyncio.get_event_loop()
-    web.run_app(web_app, port=port, loop=loop)
+    web.run_app(web_app, port=port)
 
 
 if __name__ == "__main__":
