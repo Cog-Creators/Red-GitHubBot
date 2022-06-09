@@ -472,6 +472,7 @@ async def github_rate_limiter(*, should_sleep: bool = True) -> Generator[None, N
     current_task = asyncio.current_task()
     if _gh_lock_owner is current_task:
         _gh_lock_should_sleep |= should_sleep
+        yield
         return
 
     await _gh_lock.acquire()
