@@ -10,7 +10,7 @@ from . import gh_router
 
 log = logging.getLogger(__name__)
 
-TITLE_RE = re.compile(r"\s*\[(?P<branch>\d+\.\d+)\].+\(#(?P<pr_number>\d+)\)")
+TITLE_RE = re.compile(r"\s*\[(?P<branch>[^\]]+)\].+\(#(?P<pr_number>\d+)\)")
 MAINTENANCE_BRANCH_TITLE_RE = re.compile(
     r"^\s*\[(?P<branch>\d+\.\d+)\].+?(\(#(?P<pr_number>\d+)\))?\s*$"
 )
@@ -68,6 +68,7 @@ async def _remove_backport_label(
 
     Also leave a comment on the original PR referencing the backport PR.
     """
+    actual_branch = branch if branch != "stable-docs" else "stable"
     backport_label = f"Needs Backport To {branch}"
     if not any(label_data["name"] == backport_label for label_data in original_pr_data["labels"]):
         return
@@ -75,7 +76,7 @@ async def _remove_backport_label(
     await gh.delete(original_pr_data["labels_url"], {"name": backport_label})
     message = (
         f"#{backport_pr_number} is a backport of this pull request to"
-        f" [Red {branch}](https://github.com/{UPSTREAM_REPO}/tree/{branch})."
+        f" [Red {branch}](https://github.com/{UPSTREAM_REPO}/tree/{actual_branch})."
     )
     await gh.post(original_pr_data["comments_url"], data={"body": message})
 
@@ -107,7 +108,8 @@ async def validate_maintenance_branch_pr(event: sansio.Event) -> None:
         return
 
     base_branch = pr_data["base"]["ref"]
-    if base_branch not in MAINTENANCE_BRANCHES:
+    prefix_branch = base_branch if base_branch != "stable" else "stable-docs"
+    if prefix_branch not in MAINTENANCE_BRANCHES:
         return
 
     title = utils.normalize_title(pr_data["title"], pr_data["body"])
@@ -116,7 +118,7 @@ async def validate_maintenance_branch_pr(event: sansio.Event) -> None:
 
     if match is None:
         conclusion = utils.CheckRunConclusion.FAILURE
-        title = f"[{base_branch}] {title}"
+        title = f"[{prefix_branch}] {title}"
         output = utils.CheckRunOutput(
             title="PR title is not prefixed with the branch's name.",
             summary=(
@@ -124,9 +126,9 @@ async def validate_maintenance_branch_pr(event: sansio.Event) -> None:
                 f" with the branch's name, for example:\n```\n{title}\n```"
             ),
         )
-    elif match.group("branch") != base_branch:
+    elif match.group("branch") != prefix_branch:
         conclusion = utils.CheckRunConclusion.FAILURE
-        title = f"[{base_branch}] " + title.replace(f"[{match.group('branch')}] ", "", 1)
+        title = f"[{prefix_branch}] " + title.replace(f"[{match.group('branch')}] ", "", 1)
         output = utils.CheckRunOutput(
             title="PR title is prefixed with incorrect branch's name.",
             summary=(
