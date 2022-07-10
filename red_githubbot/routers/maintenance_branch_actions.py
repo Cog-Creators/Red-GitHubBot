@@ -12,7 +12,7 @@ log = logging.getLogger(__name__)
 
 TITLE_RE = re.compile(r"\s*\[(?P<branch>[^\]]+)\].+\(#(?P<pr_number>\d+)\)")
 MAINTENANCE_BRANCH_TITLE_RE = re.compile(
-    r"^\s*\[(?P<branch>\d+\.\d+)\].+?(\(#(?P<pr_number>\d+)\))?\s*$"
+    r"^\s*\[(?P<branch>[^\]]+)\].+?(\(#(?P<pr_number>\d+)\))?\s*$"
 )
 CHECK_RUN_NAME = "Verify title of PR to maintenance branch"
 
