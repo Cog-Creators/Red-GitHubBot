@@ -1,5 +1,7 @@
 import asyncio
+import functools
 import logging
+from typing import Any
 
 from cherry_picker import cherry_picker
 from gidgethub import sansio
@@ -215,9 +217,23 @@ def backport(*, commit_hash: str, branch: str) -> cherry_picker.CherryPicker:
 
 
 def _get_cherry_picker(*, commit_hash: str, branch: str) -> cherry_picker.CherryPicker:
-    return cherry_picker.CherryPicker(
+    return CherryPicker(
         pr_remote="origin",
         commit_sha1=commit_hash,
         branches=[branch],
         config=CHERRY_PICKER_CONFIG,
     )
+
+
+class CherryPicker(cherry_picker.CherryPicker):
+    @functools.wraps(cherry_picker.CherryPicker.__init__)
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self.branches = [
+            branch if branch != "stable-docs" else "stable" for branch in self.branches
+        ]
+
+    def get_cherry_pick_branch(self, maint_branch: str) -> str:
+        if maint_branch == "stable":
+            maint_branch = "stable-docs"
+        return super().get_cherry_pick_branch(maint_branch)

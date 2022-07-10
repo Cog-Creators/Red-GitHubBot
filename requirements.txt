@@ -180,8 +180,8 @@ charset-normalizer==2.1.0 \
     # via
     #   aiohttp
     #   requests
-cherry_picker @ https://github.com/jack1142/cherry-picker/archive/b587e82c6e2dce8d6598a3ba25fef323f6000e4c.zip \
-    --hash=sha256:17606aaab4ce15d81bd4a0a451a7ee2b68b33f72bd5f463406a76509e4e69215
+cherry_picker @ https://github.com/jack1142/cherry-picker/archive/90cf6ac83c366c643003391c2d91c7b591a0b00a.zip \
+    --hash=sha256:64abe8d9703c9608d60ef441b75a67e1d61769642689d850cd3eb35a7bc930b0
     # via -r requirements.in
 click==8.1.3 \
     --hash=sha256:7682dc8afb30297001674575ea00d1814d808d6a36af415a82bd481d37ba7b8e \
