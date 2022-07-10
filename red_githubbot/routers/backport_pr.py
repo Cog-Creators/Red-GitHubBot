@@ -65,9 +65,9 @@ async def backport_pr(event: sansio.Event) -> None:
             pr_number,
             f"Sorry @{sender}, {'some of' if branches else ''} the branches you want to backport"
             f" to ({', '.join(unsupported_branches)}) seem to not be maintenance branches."
-            " Please consider reporting this to Red-GitHubBot's issue tracker"
-            " and backport using [cherry_picker](https://pypi.org/project/cherry-picker/)"
-            " on command line.\n"
+            " If you're this project's maintainer please consider reporting this to"
+            " Red-GitHubBot's issue tracker and backport using"
+            " [cherry_picker](https://pypi.org/project/cherry-picker/) on command line.\n"
             "```\n"
             f"cherry_picker {commit_hash} <branches...>\n"
             "```",
