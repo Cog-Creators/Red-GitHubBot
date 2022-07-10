@@ -1,7 +1,7 @@
 aiohttp
 apscheduler[sqlalchemy]
 cachetools
-cherry_picker
+https://github.com/jack1142/cherry-picker/archive/b587e82c6e2dce8d6598a3ba25fef323f6000e4c.zip
 gidgethub
 graphql-builder==1.0.0a3
 mistune>=2.0.0rc1
