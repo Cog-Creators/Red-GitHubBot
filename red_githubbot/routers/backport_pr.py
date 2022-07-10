@@ -83,9 +83,7 @@ async def backport_pr(event: sansio.Event) -> None:
             status=utils.CheckRunStatus.IN_PROGRESS,
         )
 
-        sorted_branches = sorted(
-            branches, reverse=True, key=lambda v: tuple(map(int, v.split(".")))
-        )
+        sorted_branches = sorted(branches, key=cherry_picker.version_sort_key)
 
         for branch in sorted_branches:
             try:
