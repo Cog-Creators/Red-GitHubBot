@@ -2,15 +2,15 @@ default_language_version:
   python: python3.8
 repos:
   - repo: https://github.com/psf/black
-    rev: '22.3.0'
+    rev: '22.10.0'
     hooks:
       - id: black
   - repo: https://github.com/Pierre-Sassoulas/black-disable-checker
-    rev: 'v1.1.0'
+    rev: 'v1.1.1'
     hooks:
       - id: black-disable-checker
   - repo: https://github.com/PyCQA/flake8
-    rev: '4.0.1'
+    rev: '6.0.0'
     hooks:
       - id: flake8
   - repo: https://github.com/PyCQA/isort
@@ -19,7 +19,7 @@ repos:
       - id: isort
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.2.0
+    rev: v4.4.0
     hooks:
       # all files should end with an empty line (for one, it minimizes the diffs)
       - id: end-of-file-fixer
