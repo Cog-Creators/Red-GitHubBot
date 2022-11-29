@@ -1,0 +1,34 @@
+---
+
+- name: Allow HTTP and HTTPS traffic.
+  become: true
+  ansible.builtin.iptables:
+    chain: INPUT
+    protocol: tcp
+    # skipping ESTABLISHED state as those are already always ACCEPTed
+    ctstate: NEW
+    destination_ports:
+      - "80"
+      - "443"
+    jump: ACCEPT
+
+- name: Save updated iptables rules.
+  become: true
+  community.general.iptables_state:
+    state: saved
+    path: /etc/iptables/rules.v4
+
+- name: Prepare secrets.
+  become: true
+  block:
+    - name: Create /etc/secrets directory.
+      ansible.builtin.file:
+        path: /etc/secrets
+        state: directory
+        mode: '0600'
+
+    - name: Create /etc/secrets directory.
+      ansible.builtin.file:
+        path: /etc/secrets
+        state: directory
+        mode: '0600'

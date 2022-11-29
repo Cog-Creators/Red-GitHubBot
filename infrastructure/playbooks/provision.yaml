@@ -1,0 +1,6 @@
+---
+- name: Install Nginx, PostgreSQL, Python, and Red-GitHubBot.
+  hosts: all
+  roles:
+    - common
+    - postgresql
