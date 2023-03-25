@@ -56,6 +56,103 @@ Doesn't seem like much? Don't worry, we're still working on more!
 
 ## Deployment
 
+### Running on fly.io
+
+1. [Create a GitHub App](https://github.com/settings/apps/new).
+    - Set GitHub App name and Homepage URL (this can be repository URL).
+    - Deselect "Active" checkbox under the Webhook section - we will set it up later.
+    - Select needed "Repository permissions"
+        - "Checks", "Contents", "Issues", "Pull Requests" are used by this application
+    - Create the GitHub App
+1. [Make a machine account](https://github.com/signup).
+1. Deploy the application to fly.io.
+
+    - Create the application on fly.io
+
+        ```
+        $ flyctl launch
+        An existing fly.toml file was found for app red-githubbot
+        ? Would you like to copy its configuration to the new app (y/N) Yes
+        Creating app in /../../Red-GitHubBot
+        Scanning source code
+        Detected a Dockerfile app
+        ? Choose an app name (leave blank to generate one): red-githubbot
+        ? Select Organization: cog-creators (cog-creators)
+        ? Choose a region for deployment: San Jose, California (US) (sjc)
+        Created app 'red-githubbot' in organization 'cog-creators'
+        Admin URL: https://fly.io/apps/red-githubbot
+        Hostname: red-githubbot.fly.dev
+        ? Would you like to set up a Postgresql database now? Yes
+        ? Select configuration: Development - Single node, 1x shared CPU, 256MB RAM, 1GB disk
+        Creating postgres cluster in organization cog-creators
+        Creating app...
+        Setting secrets on app red-githubbot-db...
+        Provisioning 1 of 1 machines with image flyio/postgres-flex:15.2@sha256:8e00d751bb9811bc8511d7129db2cc5a515449cf4a7def8f1d60faacb2be91c6
+        Waiting for machine to start...
+        Machine ... is created
+        ==> Monitoring health checks
+          Waiting for ... to become healthy (started, 3/3)
+
+        Postgres cluster red-githubbot-db created
+          Username:    postgres
+          Password:    ...
+          Hostname:    red-githubbot-db.internal
+          Flycast:     ...
+          Proxy port:  5432
+          Postgres port:  5433
+          Connection string: postgres://postgres:...@red-githubbot-db.flycast:5432
+
+        Save your credentials in a secure place -- you won't be able to see them again!
+
+        Connect to postgres
+        Any app within the cog-creators organization can connect to this Postgres using the above connection string
+
+        Now that you've set up Postgres, here's what you need to understand: https://fly.io/docs/postgres/getting-started/what-you-should-know/
+        Checking for existing attachments
+        Registering attachment
+        Creating database
+        Creating user
+
+        Postgres cluster red-githubbot-db is now attached to red-githubbot
+        The following secret was added to red-githubbot:
+          DATABASE_URL=postgres://red_githubbot:...@red-githubbot-db.flycast:5432/red_githubbot?sslmode=disable
+        Postgres cluster red-githubbot-db is now attached to red-githubbot
+        ? Would you like to set up an Upstash Redis database now? No
+        ? Would you like to deploy now? No
+        Your app is ready! Deploy with `flyctl deploy`
+        ```
+
+    - Set GitHub App ID under `GH_APP_ID` variable
+
+        ```
+        flyctl secrets set GH_APP_ID=...
+        ```
+
+    - Generate a webhook secret and set it under `GH_WEBHOOK_SECRET` variable
+
+        ```
+        flyctl secrets set GH_WEBHOOK_SECRET="$(python -c "print(__import__('secrets').token_hex(32))")"
+        ```
+
+    - Generate a private key in GitHub App's settings and copy the contents of downloaded key to `GH_PRIVATE_KEY` variable
+
+        ```
+        flyctl secrets set GH_PRIVATE_KEY=- < key.pem
+        ```
+
+    - Generate a personal access token for the bot's machine account and set it under `GH_AUTH` variable
+
+        ```
+        flyctl secrets set GH_AUTH=...
+        ```
+
+    - Deploy the application
+1. Add a webhook to the GitHub App.
+    - Use `https://{app_name}.herokuapp.com/webhook` as Webhook URL
+    - Use the previously generated webhook secret (used in `GH_WEBHOOK_SECRET` variable) as Webhook secret
+    - Save changes
+1. Install the App on selected repositories.
+
 ### Running on Heroku
 
 1. [Create a GitHub App](https://github.com/settings/apps/new).
@@ -89,7 +186,7 @@ Doesn't seem like much? Don't worry, we're still working on more!
 
 To enable Sentry integration, you need to:
 
-1. Enable [Dyno Metadata feature from Heroku Labs](https://devcenter.heroku.com/articles/dyno-metadata)
+1. (if on Heroku) Enable [Dyno Metadata feature from Heroku Labs](https://devcenter.heroku.com/articles/dyno-metadata)
 1. Set Sentry client key under `SENTRY_DSN` variable for error tracking.
 
     You can find this on the 'Client Keys (DSN)' page in the Sentry project's settings.
