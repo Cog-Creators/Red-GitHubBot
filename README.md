@@ -131,7 +131,8 @@ Doesn't seem like much? Don't worry, we're still working on more!
     - Generate a webhook secret and set it under `GH_WEBHOOK_SECRET` variable
 
         ```
-        flyctl secrets set GH_WEBHOOK_SECRET="$(python -c "print(__import__('secrets').token_hex(32))")"
+        python -c "print(__import__('secrets').token_hex(32))"
+        flyctl secrets set GH_WEBHOOK_SECRET=<SECRET HERE>
         ```
 
     - Generate a private key in GitHub App's settings and copy the contents of downloaded key to `GH_PRIVATE_KEY` variable
