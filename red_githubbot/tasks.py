@@ -40,13 +40,20 @@ def _prepare_red_git_repo() -> None:
         return
 
     _prepare_git()
-    subprocess.check_output(
-        (
-            "git",
-            "clone",
-            f"https://{utils.machine_gh.oauth_token}:x-oauth-basic@github.com/{FORK_REPO}",
+    try:
+        subprocess.check_output(
+            (
+                "git",
+                "clone",
+                f"https://{utils.machine_gh.oauth_token}:x-oauth-basic@github.com/{FORK_REPO}",
+            )
         )
-    )
+    except subprocess.CalledProcessError as exc:
+        exc.cmd = tuple(
+            arg.replace(utils.machine_gh.oauth_token, "<MACHINE_GH_OAUTH_TOKEN>")
+            for arg in exc.cmd
+        )
+        raise
     os.chdir(f"./{REPO_NAME}")
     subprocess.check_output(
         ("git", "remote", "add", "upstream", f"https://github.com/{UPSTREAM_REPO}")
