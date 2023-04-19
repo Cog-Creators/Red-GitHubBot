@@ -26,6 +26,8 @@ def main() -> None:
         style="{",
         level=logging.INFO,
     )
+    logging.getLogger("sqlalchemy.engine").setLevel(logging.INFO)
+    logging.getLogger("sqlalchemy.pool").setLevel(logging.DEBUG)
     port = int(os.environ.get("PORT", 8080))
     web.run_app(web_app, port=port)
 
