@@ -16,6 +16,7 @@ import aiohttp
 import cachetools
 import gidgethub
 import mistune
+import sentry_sdk
 import sqlalchemy.exc
 from aiohttp import web
 from apscheduler.job import Job
@@ -27,6 +28,7 @@ from .constants import MACHINE_USERNAME, REQUESTER, UPSTREAM_REPO
 
 log = logging.getLogger(__name__)
 
+SENTRY_DSN = os.environ.get("SENTRY_DSN")
 DB_ERRORS = (sqlalchemy.exc.OperationalError,)
 git_lock = asyncio.Lock()
 session: aiohttp.ClientSession
@@ -488,3 +490,8 @@ async def github_rate_limiter(*, should_sleep: bool = True) -> Generator[None, N
             asyncio.get_running_loop().call_later(1, _gh_lock.release)
         else:
             _gh_lock.release()
+
+
+def capture_exception(exc: BaseException) -> None:
+    if SENTRY_DSN:
+        sentry_sdk.capture_exception(exc)

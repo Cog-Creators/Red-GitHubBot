@@ -3,19 +3,20 @@ import os
 
 from aiohttp import web
 
+from .utils import SENTRY_DSN
 from .web import app as web_app
 
 log = logging.getLogger("red_githubbot")
 
 
 def main() -> None:
-    if _sentry_dsn := os.environ.get("SENTRY_DSN"):
+    if SENTRY_DSN:
         # pylint: disable=import-outside-toplevel
         import sentry_sdk
         from sentry_sdk.integrations.pure_eval import PureEvalIntegration
 
         sentry_sdk.init(
-            _sentry_dsn,
+            SENTRY_DSN,
             release=os.getenv("HEROKU_SLUG_COMMIT"),
             traces_sample_rate=0.1,
             integrations=[PureEvalIntegration()],

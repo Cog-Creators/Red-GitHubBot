@@ -105,6 +105,7 @@ async def backport_pr(event: sansio.Event) -> None:
                     f"Please retry by removing and re-adding the"
                     f" `Needs Backport To {branch}` label.",
                 )
+                utils.capture_exception(exc)
 
 
 async def backport_task(
