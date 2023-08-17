@@ -1,0 +1,13 @@
+version: 2
+updates:
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    # Add assignees
+    assignees:
+      - "Jackenmen"
+    groups:
+      python-requirements:
+        patterns:
+          - "*"
