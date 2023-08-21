@@ -97,9 +97,9 @@ aiosignal==1.3.1 \
     --hash=sha256:54cd96e15e1649b75d6c87526a6ff0b6c1b0dd3459f43d9ca11d48c339b68cfc \
     --hash=sha256:f8376fb07dd1e86a584e4fcdec80b36b7f81aac666ebc724e2c090300dd83b17
     # via aiohttp
-apscheduler[sqlalchemy]==3.10.3 \
-    --hash=sha256:1611d207b095ff52d97884e90736c192bdd94dbd44ce27eb92c3f1da24a400d3 \
-    --hash=sha256:3f17fd3915f14f4bfa597f552130a14a9d1cc74a002fa1d95dd671cb48dba70e
+apscheduler[sqlalchemy]==3.10.4 \
+    --hash=sha256:e6df071b27d9be898e486bc7940a7be50b4af2e9da7c08f0744a96d4bd4cef4a \
+    --hash=sha256:fb91e8a768632a4756a585f79ec834e0e27aad5860bac7eaa523d9ccefd87661
     # via -r requirements.in
 asttokens==2.2.1 \
     --hash=sha256:4622110b2a6f30b77e1473affaa97e711bc2f07d3f10848420ff1898edbe94f3 \
