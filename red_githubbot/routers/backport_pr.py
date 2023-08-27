@@ -18,6 +18,7 @@ CHERRY_PICKER_CONFIG = {
     "check_sha": "6251c585e4ec0a53813a9993ede3ab5309024579",
     "fix_commit_msg": False,
     "default_branch": "V3/develop",
+    "require_version_in_branch_name": False,
 }
 
 
@@ -83,7 +84,9 @@ async def backport_pr(event: sansio.Event) -> None:
             status=utils.CheckRunStatus.IN_PROGRESS,
         )
 
-        sorted_branches = sorted(branches, key=cherry_picker.version_sort_key)
+        sorted_branches = sorted(
+            branches, key=functools.partial(cherry_picker.version_sort_key, CHERRY_PICKER_CONFIG)
+        )
 
         for branch in sorted_branches:
             try:
