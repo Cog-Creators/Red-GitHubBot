@@ -641,10 +641,12 @@ requests==2.31.0 \
     --hash=sha256:58cd2187c01e70e6e26505bca751777aa9f2ee0b7f4300988b709f44e013003f \
     --hash=sha256:942c5a758f98d790eaed1a29cb6eefc7ffb0d1cf7af05c3d2791656dbd6ad1e1
     # via cherry-picker
-sentry-sdk[pure_eval]==1.33.1 \
-    --hash=sha256:1cce906dc86afda1ecd22c4716b0c846639151a3c3b59e23826711c6525c5642 \
-    --hash=sha256:816aeb900a54bba2d9346bad8ffac2d258c4fa09271b95a6533a714e9000f074
-    # via -r requirements.in
+sentry-sdk[pure-eval]==1.37.1 \
+    --hash=sha256:7cd324dd2877fdc861f75cba4242bce23a58272a6fea581fcb218bb718bd9cc5 \
+    --hash=sha256:a249c7364827ee89daaa078bb8b56ece0b3d52d9130961bef2302b79bdf7fe70
+    # via
+    #   -r requirements.in
+    #   sentry-sdk
 simplejson==3.19.1 \
     --hash=sha256:081ea6305b3b5e84ae7417e7f45956db5ea3872ec497a584ec86c3260cda049e \
     --hash=sha256:08be5a241fdf67a8e05ac7edbd49b07b638ebe4846b560673e196b2a25c94b92 \
