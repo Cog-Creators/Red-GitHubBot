@@ -163,7 +163,7 @@ async def backport_task(
                 " on command line.\n"
                 "```\n"
                 f"cherry_picker {commit_hash} {branch}\n"
-                "```",
+                "```"
             )
             conclusion = utils.CheckRunConclusion.FAILURE
             output = utils.CheckRunOutput(
