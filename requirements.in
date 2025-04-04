@@ -7,4 +7,4 @@ graphql-builder==1.0.0a3
 mistune>=2.0.0rc1
 psycopg2
 regex
-sentry_sdk[pure_eval]
+sentry_sdk[pure-eval]
