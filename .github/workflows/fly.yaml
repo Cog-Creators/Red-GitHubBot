@@ -8,6 +8,7 @@ jobs:
   deploy:
     name: Deploy app
     runs-on: ubuntu-latest
+    concurrency: deploy-group
     environment:
       name: red-githubbot
       url: https://red-githubbot
