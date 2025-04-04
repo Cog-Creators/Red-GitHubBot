@@ -11,3 +11,14 @@ updates:
       python-requirements:
         patterns:
           - "*"
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    # Add assignees
+    assignees:
+      - "Jackenmen"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
