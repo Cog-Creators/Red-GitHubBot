@@ -744,7 +744,9 @@ pycparser==2.22 \
 pyjwt[crypto]==2.10.1 \
     --hash=sha256:3cc5772eb20009233caf06e9d8a0577824723b44e6648ee0a2aedb6cf9381953 \
     --hash=sha256:dcdd193e30abefd5debf142f9adfcdd2b58004e644f25406ffaebd50bd98dacb
-    # via gidgethub
+    # via
+    #   gidgethub
+    #   pyjwt
 regex==2024.11.6 \
     --hash=sha256:02a02d2bb04fec86ad61f3ea7f49c015a0681bf76abb9857f945d26159d2968c \
     --hash=sha256:02e28184be537f0e75c1f9b2f8847dc51e08e6e171c6bde130b2687e0c33cf60 \
@@ -845,10 +847,12 @@ requests==2.32.3 \
     --hash=sha256:55365417734eb18255590a9ff9eb97e9e1da868d4ccd6402399eaf68af20a760 \
     --hash=sha256:70761cfe03c773ceb22aa2f671b4757976145175cdfca038c02654d061d6dcc6
     # via cherry-picker
-sentry-sdk[pure-eval]==2.25.1 \
-    --hash=sha256:60b016d0772789454dc55a284a6a44212044d4a16d9f8448725effee97aaf7f6 \
-    --hash=sha256:f9041b7054a7cf12d41eadabe6458ce7c6d6eea7a97cfe1b760b6692e9562cf0
-    # via -r requirements.in
+sentry-sdk[pure-eval]==2.26.0 \
+    --hash=sha256:82496fc359296dac57ec923300b18cc1f14a1279c1e7108d46d35dbb4cf8f5f8 \
+    --hash=sha256:88643459716dd0c6e412e5141fcc94ce3b5725e4b6b312210b91332b3b46a0e2
+    # via
+    #   -r requirements.in
+    #   sentry-sdk
 simplejson==3.20.1 \
     --hash=sha256:000602141d0bddfcff60ea6a6e97d5e10c9db6b17fd2d6c66199fa481b6214bb \
     --hash=sha256:03d7a426e416fe0d3337115f04164cd9427eb4256e843a6b8751cacf70abc832 \
