@@ -86,6 +86,7 @@ async def _remove_backport_label(
 @gh_router.register("pull_request", action="edited")
 @gh_router.register("pull_request", action="synchronize")
 @gh_router.register("check_run", action="rerequested")
+@gh_router.register("merge_group", action="check_requested")
 async def validate_maintenance_branch_pr(event: sansio.Event) -> None:
     """
     Check the PR title for maintenance branch pull requests.

@@ -12,6 +12,7 @@ CHECK_RUN_NAME = "Blocked status"
 @gh_router.register("pull_request", action="labeled")
 @gh_router.register("pull_request", action="unlabeled")
 @gh_router.register("check_run", action="rerequested")
+@gh_router.register("merge_group", action="check_requested")
 async def check_for_blocked_labels(event: sansio.Event) -> None:
     installation_id = event.data["installation"]["id"]
     gh = await utils.get_gh_client(installation_id)
