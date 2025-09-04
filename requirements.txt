@@ -852,9 +852,9 @@ requests==2.32.4 \
     --hash=sha256:27babd3cda2a6d50b30443204ee89830707d396671944c998b5975b031ac2b2c \
     --hash=sha256:27d0316682c8a29834d3264820024b62a36942083d52caf2f14c0591336d3422
     # via cherry-picker
-sentry-sdk[pure-eval]==2.35.2 \
-    --hash=sha256:38c98e3cbb620dd3dd80a8d6e39c753d453dd41f8a9df581b0584c19a52bc926 \
-    --hash=sha256:e9e8f3c795044beb59f2c8f4c6b9b0f9779e5e604099882df05eec525e782cc6
+sentry-sdk[pure-eval]==2.36.0 \
+    --hash=sha256:0f95586a141068d215376e5bf8ebd279e126f7f42805e9570190ef82a7e232b3 \
+    --hash=sha256:af9260e8155e41e8217615a453828e98aa40740865ac4b16b1ccb6a63b4b2e31
     # via
     #   -r requirements.in
     #   sentry-sdk
