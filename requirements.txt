@@ -150,9 +150,9 @@ attrs==25.3.0 \
     --hash=sha256:427318ce031701fea540783410126f03899a97ffc6f61596ad581ac2e40e3bc3 \
     --hash=sha256:75d7cefc7fb576747b2c81b4442d4d4a1ce0900973527c011d1030fd3bf4af1b
     # via aiohttp
-cachetools==6.2.0 \
-    --hash=sha256:1c76a8960c0041fcc21097e357f882197c79da0dbff766e7317890a65d7d8ba6 \
-    --hash=sha256:38b328c0889450f05f5e120f56ab68c8abaf424e1275522b138ffc93253f7e32
+cachetools==6.2.1 \
+    --hash=sha256:09868944b6dde876dfd44e1d47e18484541eaf12f26f29b7af91b26cc892d701 \
+    --hash=sha256:3f391e4bd8f8bf0931169baf7456cc822705f4e2a31f840d218f445b9a854201
     # via -r requirements.in
 certifi==2025.1.31 \
     --hash=sha256:3d5da6925056f6f18f119200434a4780a94263f10d1c21d032a6f6b2baa20651 \
@@ -910,9 +910,7 @@ requests==2.32.4 \
 sentry-sdk[pure-eval]==2.41.0 \
     --hash=sha256:343cde6540574113d13d178d1b2093e011ac21dd55abd3a1ec7e540f0d18a5bd \
     --hash=sha256:e7af3f4d7f8bac4c56fbaf95adb0d111f061cce58d5df91cfcd4e69782759b10
-    # via
-    #   -r requirements.in
-    #   sentry-sdk
+    # via -r requirements.in
 simplejson==3.20.1 \
     --hash=sha256:000602141d0bddfcff60ea6a6e97d5e10c9db6b17fd2d6c66199fa481b6214bb \
     --hash=sha256:03d7a426e416fe0d3337115f04164cd9427eb4256e843a6b8751cacf70abc832 \
