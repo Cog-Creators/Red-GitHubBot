@@ -187,6 +187,12 @@ Doesn't seem like much? Don't worry, we're still working on more!
         python -c "print(__import__('secrets').token_hex(32))"
         ```
 
+    - Generate a Discord webhook secret and set it under `GH_DISCORD_WEBHOOK_SECRET` variable
+
+        ```
+        python -c "print(__import__('secrets').token_hex(32))"
+        ```
+
     - Generate a private key in GitHub App's settings and copy the contents of downloaded key to `GH_PRIVATE_KEY` variable
     - Generate a personal access token for the bot's machine account and set it under `GH_AUTH` variable
     - Deploy the application
@@ -221,6 +227,13 @@ and allow us to make an entirely custom message for specific events.
    ```
    https://red-githubbot.fly.dev/discord-webhook/1234.../qXU...
    ```
+3. When creating the webhook in repository settings, you need to set the webhook secret to
+   app's `GH_DISCORD_WEBHOOK_SECRET` value.
+
+We don't currently have an org-wide credential storage solution *but* you can extract the secret directly from the running app with the following command:
+```
+fly ssh console -C 'bash -c "echo $GH_DISCORD_WEBHOOK_SECRET"'
+```
 
 ## License
 
