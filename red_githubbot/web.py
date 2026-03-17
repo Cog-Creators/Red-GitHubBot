@@ -6,7 +6,7 @@ import gidgethub
 from aiohttp import web
 from gidgethub import sansio
 
-from . import tasks, utils
+from . import discord_webhook, tasks, utils
 from .constants import UPSTREAM_REPO
 from .routers import gh_router
 
@@ -57,7 +57,7 @@ async def webhook(request: web.Request) -> web.Response:
 
 @routes.post("/discord-webhook/{webhook_id}/{webhook_token}")
 @routes.post("/discord-webhook/{webhook_id}/{webhook_token}/github")
-async def discord_webhook(request: web.Request) -> web.Response:
+async def discord_webhook_route(request: web.Request) -> web.Response:
     try:
         body = await request.read()
         secret = os.environ["GH_DISCORD_WEBHOOK_SECRET"]
@@ -77,16 +77,9 @@ async def discord_webhook(request: web.Request) -> web.Response:
         if event.event == "ping":
             return web.Response(status=200)
 
-        async with utils.session.post(
-            f"https://discord.com/api/webhooks/{webhook_id}/{webhook_token}/github",
-            json=event.data,
-            headers={"X-Github-Event": event.event},
-        ) as resp:
-            return web.Response(
-                headers=resp.headers,
-                status=resp.status,
-                body=await resp.read(),
-            )
+        return await discord_webhook.handle_event(
+            event, webhook_id=webhook_id, webhook_token=webhook_token
+        )
     except Exception as exc:
         log.error("The app did not handle an exception", exc_info=exc)
         return web.Response(status=500)

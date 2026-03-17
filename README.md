@@ -235,6 +235,9 @@ We don't currently have an org-wide credential storage solution *but* you can ex
 fly ssh console -C 'bash -c "echo $GH_DISCORD_WEBHOOK_SECRET"'
 ```
 
+The custom event handlers for the `/discord-webhook` endpoint can be found
+in the [`red_githubbot/discord_webhook.py` file](red_githubbot/discord_webhook.py).
+
 ## License
 
 See the [LICENSE file](LICENSE) for details.
