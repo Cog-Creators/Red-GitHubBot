@@ -31,6 +31,33 @@ from . import utils
 _gh_router = routing.Router()
 
 
+@_gh_router.register("deployment_status")
+async def on_deployment_status(event: sansio.Event, *, webhook: discord.Webhook) -> None:
+    status = event["deployment_status"]
+    status_state = status["state"]
+    if status_state == "error":
+        status_text = "errored"
+    elif status_state == "failure":
+        status_text = "failed"
+    elif status_state == "success":
+        status_text = "succeeded"
+    else:
+        return
+
+    embed = generate_basic_event_embed(event)
+    embed.title = shorten_to(
+        f"{embed.title}Deployment {status_text}: {status['environment']}", 256
+    )
+    embed.url = status["target_url"]
+    await webhook.send(embed=embed)
+
+
+def shorten_to(text: str, max_length: int) -> str:
+    if len(text) > max_length:
+        return f"{text[:max_length-1]}\N{HORIZONTAL ELLIPSIS}"
+    return text
+
+
 def generate_basic_event_embed(event: sansio.Event) -> discord.Embed:
     """
     Generate an embed with common data from the event pre-filled.
