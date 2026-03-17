@@ -33,7 +33,7 @@ _gh_router = routing.Router()
 
 @_gh_router.register("deployment_status")
 async def on_deployment_status(event: sansio.Event, *, webhook: discord.Webhook) -> None:
-    status = event["deployment_status"]
+    status = event.data["deployment_status"]
     status_state = status["state"]
     if status_state == "error":
         status_text = "errored"
