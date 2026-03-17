@@ -55,6 +55,43 @@ async def webhook(request: web.Request) -> web.Response:
         return web.Response(status=500)
 
 
+@routes.post("/discord-webhook/{webhook_id}/{webhook_token}")
+@routes.post("/discord-webhook/{webhook_id}/{webhook_token}/github")
+async def discord_webhook(request: web.Request) -> web.Response:
+    try:
+        body = await request.read()
+        secret = os.environ["GH_DISCORD_WEBHOOK_SECRET"]
+        try:
+            event = sansio.Event.from_http(request.headers, body, secret=secret)
+        except gidgethub.ValidationFailure as exc:
+            log.info("GH Discord webhook failed secret validation: %s", exc)
+            return web.Response(status=401, text=str(exc))
+        except gidgethub.BadRequest as exc:
+            log.info("GH Discord webhook received a bad request (%d): %s", exc.status_code, exc)
+            return web.Response(status=exc.status_code.value, text=str(exc))
+
+        webhook_id = request.match_info["webhook_id"]
+        webhook_token = request.match_info["webhook_token"]
+        log.info("Discord webhook ID: %s, GH delivery ID: %s", webhook_id, event.delivery_id)
+
+        if event.event == "ping":
+            return web.Response(status=200)
+
+        async with utils.session.post(
+            f"https://discord.com/api/webhooks/{webhook_id}/{webhook_token}/github",
+            json=event.data,
+            headers={"X-Github-Event": event.event},
+        ) as resp:
+            return web.Response(
+                headers=resp.headers,
+                status=resp.status,
+                body=await resp.read(),
+            )
+    except Exception as exc:
+        log.error("The app did not handle an exception", exc_info=exc)
+        return web.Response(status=500)
+
+
 async def on_startup(app: web.Application) -> None:
     await utils.on_startup(app)
     await tasks.on_startup(app)

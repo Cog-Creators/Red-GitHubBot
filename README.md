@@ -52,6 +52,12 @@ GitHub bot which helps out on [Red-DiscordBot's repository](https://github.com/C
     The bot auto-applies **Changelong Entry: Pending** label on the PRs that were
     merged to `V3/develop` branch if there is no other **Changelon Entry** label on it already.
 
+- Discord webhook proxy
+
+    The service has an endpoint proxying repository webhook traffic to Discord,
+    allowing for customizing the sent message and supporting more events.
+    Usage is explained in the "Proxying Discord webhook traffic" section below.
+
 Doesn't seem like much? Don't worry, we're still working on more!
 
 ## Deployment
@@ -135,6 +141,13 @@ Doesn't seem like much? Don't worry, we're still working on more!
         flyctl secrets set GH_WEBHOOK_SECRET=<SECRET HERE>
         ```
 
+    - Generate a Discord webhook secret and set it under `GH_DISCORD_WEBHOOK_SECRET` variable
+
+        ```
+        python -c "print(__import__('secrets').token_hex(32))"
+        flyctl secrets set GH_DISCORD_WEBHOOK_SECRET=<SECRET HERE>
+        ```
+
     - Generate a private key in GitHub App's settings and copy the contents of downloaded key to `GH_PRIVATE_KEY` variable
 
         ```
@@ -193,6 +206,21 @@ To enable Sentry integration, you need to:
     You can find this on the 'Client Keys (DSN)' page in the Sentry project's settings.
 
 1. Re-deploy the application
+
+## Proxying Discord webhook traffic
+
+The application has a `/discord-webhook` endpoint that can proxy what it receives to Discord's webhook
+and allow us to make an entirely custom message for specific events.
+
+1. Generate a webhook and copy its URL. It should look something like this:
+   ```
+   https://discord.com/api/webhooks/1234.../qXU...
+   ```
+2. Replace `https://discord.com/api/webhooks` in the URL with `{app_base_url}/discord-webhook`.
+   For the current production app (`https://red-githubbot.fly.dev`), the above URL should look like this:
+   ```
+   https://red-githubbot.fly.dev/discord-webhook/1234.../qXU...
+   ```
 
 ## License
 
