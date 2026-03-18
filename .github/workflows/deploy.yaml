@@ -16,6 +16,17 @@ jobs:
     outputs:
       image_digest: ${{ steps.image-build.outputs.digest }}
     steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v6
+
+      - name: Install the latest version of uv
+        uses: astral-sh/setup-uv@v7
+
+      - name: Get package version
+        id: package_version
+        run:
+          echo "version=$(uvx setuptools-scm)"
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
 
@@ -29,6 +40,7 @@ jobs:
           tags: |
             type=sha
             type=sha,format=long
+            type=raw,value=${{ steps.package_version.outputs.version }}
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v4
@@ -41,6 +53,7 @@ jobs:
         uses: docker/build-push-action@v7
         id: image-build
         with:
+          context: .
           platforms: linux/amd64
           push: true
           tags: ${{ steps.meta.outputs.tags }}

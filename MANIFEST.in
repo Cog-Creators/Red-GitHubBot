@@ -1,0 +1,5 @@
+# Exclude archival file from development builds
+exclude .git_archival.txt
+
+# Exclude fly.toml since it's app-specific
+exclude fly.toml
