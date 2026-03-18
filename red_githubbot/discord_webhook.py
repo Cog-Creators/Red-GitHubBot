@@ -28,6 +28,7 @@ from collections.abc import Sequence
 from typing import Any
 
 import discord
+import yarl
 from aiohttp import web
 from gidgethub import routing, sansio
 
@@ -129,8 +130,11 @@ class Webhook(discord.Webhook):
 
 
 async def execute_default_github_webhook(event: sansio.Event, *, webhook: Webhook) -> web.Response:
+    url = yarl.URL(f"{webhook.url}/github")
+    if webhook.thread is not None:
+        url = url.update_query(thread_id=webhook.thread.id)
     async with utils.session.post(
-        f"{webhook.url}/github", json=event.data, headers={"X-Github-Event": event.event}
+        url, json=event.data, headers={"X-Github-Event": event.event}
     ) as resp:
         return web.Response(
             headers=resp.headers,
