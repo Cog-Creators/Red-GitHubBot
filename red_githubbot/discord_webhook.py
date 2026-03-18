@@ -110,6 +110,10 @@ class Webhook(discord.Webhook):
             username = "GitHub"
         if avatar_url is discord.utils.MISSING:
             avatar_url = _GITHUB_AVATAR_URL
+        if allowed_mentions is discord.utils.MISSING:
+            allowed_mentions = discord.AllowedMentions.none()
+        else:
+            allowed_mentions = discord.AllowedMentions.none().merge(allowed_mentions)
         await super().send(
             content,
             username=username,
