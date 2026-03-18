@@ -131,7 +131,7 @@ class Webhook(discord.Webhook):
 
 async def execute_default_github_webhook(event: sansio.Event, *, webhook: Webhook) -> web.Response:
     url = yarl.URL(f"{webhook.url}/github")
-    if webhook.thread is not None:
+    if webhook.thread is not discord.utils.MISSING:
         url = url.update_query(thread_id=webhook.thread.id)
     async with utils.session.post(
         url, json=event.data, headers={"X-Github-Event": event.event}
