@@ -81,10 +81,9 @@ def generate_basic_event_embed(event: sansio.Event) -> discord.Embed:
     if repo is not None:
         embed.title = f"[{repo['full_name']}] "
 
-    if sender is not None:
-        embed.set_author(name=sender["login"], url=sender["html_url"])
-    elif repo is not None:
-        embed.set_author(name=repo["owner"]["name"], url=repo["owner"]["html_url"])
+    actor = sender or (repo or {}).get("owner")
+    if actor is not None:
+        embed.set_author(name=actor["login"], url=actor["html_url"], icon_url=actor["avatar_url"])
 
     return embed
 
