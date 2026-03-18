@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import os
+import re
 
 import gidgethub
 from aiohttp import web
@@ -13,6 +14,9 @@ from .routers import gh_router
 log = logging.getLogger(__name__)
 
 routes = web.RouteTableDef()
+
+_DISCORD_ID_RE = re.compile(r"^[0-9]{17,20}$")
+_DISCORD_WEBHOOK_TOKEN_RE = re.compile(r"^[A-Za-z0-9\.\-\_]{60,}$")
 
 
 @routes.get("/")
@@ -71,14 +75,25 @@ async def discord_webhook_route(request: web.Request) -> web.Response:
             return web.Response(status=exc.status_code.value, text=str(exc))
 
         webhook_id = request.match_info["webhook_id"]
+        if _DISCORD_ID_RE.match(webhook_id) is None:
+            raise web.HTTPBadRequest(reason="invalid webhook_id value") from None
         webhook_token = request.match_info["webhook_token"]
+        if _DISCORD_WEBHOOK_TOKEN_RE.match(webhook_token) is None:
+            raise web.HTTPBadRequest(reason="invalid webhook_token value") from None
         log.info("Discord webhook ID: %s, GH delivery ID: %s", webhook_id, event.delivery_id)
 
         if event.event == "ping":
             return web.Response(status=200)
 
+        thread_id: int | None = None
+        raw_thread_id = request.query.get("thread_id")
+        if raw_thread_id:
+            if _DISCORD_ID_RE.match(raw_thread_id) is None:
+                raise web.HTTPBadRequest(reason="invalid thread_id value") from None
+            thread_id = int(raw_thread_id)
+
         return await discord_webhook.handle_event(
-            event, webhook_id=webhook_id, webhook_token=webhook_token
+            event, webhook_id=webhook_id, webhook_token=webhook_token, thread_id=thread_id
         )
     except Exception as exc:
         log.error("The app did not handle an exception", exc_info=exc)

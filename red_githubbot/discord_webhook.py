@@ -140,9 +140,12 @@ async def execute_default_github_webhook(event: sansio.Event, *, webhook: Webhoo
 
 
 async def handle_event(
-    event: sansio.Event, *, webhook_id: str, webhook_token: str
+    event: sansio.Event, *, webhook_id: str, webhook_token: str, thread_id: int | None = None
 ) -> web.Response:
     webhook = Webhook.partial(webhook_id, webhook_token, session=utils.session)
+    if thread_id is not None:
+        webhook.thread = discord.Object(thread_id)
+
     found_callbacks = _gh_router.fetch(event)
     if found_callbacks:
         for callback in found_callbacks:
