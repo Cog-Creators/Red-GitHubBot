@@ -4,7 +4,7 @@ Discord webhook handling.
 Custom handlers can be created by creating a function decorated with @_gh_router.register():
 
     @_gh_router.register("milestone", action="created")
-    async def on_milestone_created(event: sansio.Event, *, webhook: discord.Webhook) -> None:
+    async def on_milestone_created(event: sansio.Event, *, webhook: Webhook) -> None:
         milestone = event.data["milestone"]
         embed = generate_basic_event_embed(event)
         embed.title += f"Milestone created: {milestone{['title']}"
@@ -22,6 +22,11 @@ in setting some common properties for event embeds, see its docstring for more d
 when no custom handlers are found that can handle the event (and its action, if any).
 """
 
+from __future__ import annotations
+
+from collections.abc import Sequence
+from typing import Any
+
 import discord
 from aiohttp import web
 from gidgethub import routing, sansio
@@ -29,10 +34,13 @@ from gidgethub import routing, sansio
 from . import utils
 
 _gh_router = routing.Router()
+_GITHUB_AVATAR_URL = (
+    "https://cdn.discordapp.com/avatars/354986384542662657/df91181b3f1cf0ef1592fbe18e0962d7.png"
+)
 
 
 @_gh_router.register("deployment_status")
-async def on_deployment_status(event: sansio.Event, *, webhook: discord.Webhook) -> None:
+async def on_deployment_status(event: sansio.Event, *, webhook: Webhook) -> None:
     status = event.data["deployment_status"]
     status_state = status["state"]
     if status_state == "error":
@@ -81,9 +89,43 @@ def generate_basic_event_embed(event: sansio.Event) -> discord.Embed:
     return embed
 
 
-async def execute_default_github_webhook(
-    event: sansio.Event, *, webhook: discord.Webhook
-) -> web.Response:
+class Webhook(discord.Webhook):
+    thread: discord.abc.Snowflake = discord.utils.MISSING
+
+    async def send(
+        self,
+        content: str = discord.utils.MISSING,
+        *,
+        username: str = discord.utils.MISSING,
+        avatar_url: Any = discord.utils.MISSING,
+        file: discord.File = discord.utils.MISSING,
+        files: Sequence[discord.File] = discord.utils.MISSING,
+        embed: discord.Embed = discord.utils.MISSING,
+        embeds: Sequence[discord.Embed] = discord.utils.MISSING,
+        allowed_mentions: discord.AllowedMentions = discord.utils.MISSING,
+        view: discord.ui.LayoutView | discord.ui.View = discord.utils.MISSING,
+        thread_name: str = discord.utils.MISSING,
+    ) -> None:
+        if username is discord.utils.MISSING:
+            username = "GitHub"
+        if avatar_url is discord.utils.MISSING:
+            avatar_url = _GITHUB_AVATAR_URL
+        await super().send(
+            content,
+            username=username,
+            avatar_url=avatar_url,
+            file=file,
+            files=files,
+            embed=embed,
+            embeds=embeds,
+            allowed_mentions=allowed_mentions,
+            view=view,
+            thread=self.thread,
+            thread_name=thread_name,
+        )
+
+
+async def execute_default_github_webhook(event: sansio.Event, *, webhook: Webhook) -> web.Response:
     async with utils.session.post(
         f"{webhook.url}/github", json=event.data, headers={"X-Github-Event": event.event}
     ) as resp:
@@ -97,7 +139,7 @@ async def execute_default_github_webhook(
 async def handle_event(
     event: sansio.Event, *, webhook_id: str, webhook_token: str
 ) -> web.Response:
-    webhook = discord.Webhook.partial(webhook_id, webhook_token, session=utils.session)
+    webhook = Webhook.partial(webhook_id, webhook_token, session=utils.session)
     found_callbacks = _gh_router.fetch(event)
     if found_callbacks:
         for callback in found_callbacks:
