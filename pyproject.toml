@@ -25,9 +25,7 @@ dynamic = ["version"]
 
 [dependency-groups]
 dev = [
-    "black~=23.7.0",
-    "flake8~=6.1.0",
-    "isort~=5.12.0",
+    "ruff>=0.15.6",
 ]
 
 [tool.uv]
@@ -36,12 +34,29 @@ cache-keys = [{ file = "pyproject.toml" }, { git = { commit = true } }]
 [tool.uv.sources]
 cherry-picker = { url = "https://github.com/Jackenmen/cherry-picker/archive/109a2f96cca76631387b594111715b329c6f34e9.zip" }
 
-[tool.black]
+[tool.ruff]
 line-length = 99
-target-version = ['py38']
-include = '\.py$'
 
-[tool.isort]
-profile = "black"
-line_length = 99
-combine_as_imports = true
+[tool.ruff.format]
+line-ending = "lf"
+
+[tool.ruff.lint]
+select = [
+    # mccabe
+    "C90",
+    # pyflakes rules
+    "F",
+    # pycodestyle rules
+    "E",
+    "W",
+    # import sorting
+    "I",
+    # pygrep-hooks
+    "PGH",
+]
+ignore = [
+    "E203",
+]
+
+[tool.ruff.lint.isort]
+combine-as-imports = true

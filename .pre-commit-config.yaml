@@ -1,23 +1,6 @@
 default_language_version:
   python: python3.10
 repos:
-  - repo: https://github.com/psf/black
-    rev: '23.7.0'
-    hooks:
-      - id: black
-  - repo: https://github.com/Pierre-Sassoulas/black-disable-checker
-    rev: 'v1.1.3'
-    hooks:
-      - id: black-disable-checker
-  - repo: https://github.com/PyCQA/flake8
-    rev: '6.1.0'
-    hooks:
-      - id: flake8
-  - repo: https://github.com/PyCQA/isort
-    rev: '5.12.0'
-    hooks:
-      - id: isort
-
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.4.0
     hooks:
@@ -50,10 +33,14 @@ repos:
       - id: check-case-conflict
       - id: check-merge-conflict
 
-  - repo: https://github.com/pre-commit/pygrep-hooks
-    rev: v1.10.0
+  - repo: https://github.com/Pierre-Sassoulas/black-disable-checker
+    rev: 'v1.1.3'
     hooks:
-      - id: python-check-blanket-noqa
-      - id: python-check-blanket-type-ignore
-      - id: rst-directive-colons
-      - id: rst-inline-touching-normal
+      - id: black-disable-checker
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.6
+    hooks:
+      - id: ruff-check
+        args: [--fix]
+      - id: ruff-format
