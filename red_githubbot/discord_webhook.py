@@ -63,7 +63,7 @@ async def on_deployment_status(event: sansio.Event, *, webhook: Webhook) -> None
 
 def shorten_to(text: str, max_length: int) -> str:
     if len(text) > max_length:
-        return f"{text[:max_length-1]}\N{HORIZONTAL ELLIPSIS}"
+        return f"{text[: max_length - 1]}\N{HORIZONTAL ELLIPSIS}"
     return text
 
 

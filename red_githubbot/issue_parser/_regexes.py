@@ -6,7 +6,7 @@ from .actions import KEYWORDS
 
 _KEYWORD_PATTERN = rf"""
 (?:
-    (?P<keyword_name>{'|'.join(map(regex.escape, KEYWORDS))})
+    (?P<keyword_name>{"|".join(map(regex.escape, KEYWORDS))})
 
     # the issue reference needs to be delimited from the keyword by
     # any amount of whitespace and optionally one colon in it
