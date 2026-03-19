@@ -9,7 +9,7 @@ dependencies = [
     "aiohttp>=3.13.3",
     "apscheduler[sqlalchemy]>=3.11.2",
     "cachetools>=7.0.5",
-    "cherry-picker",
+    "cherry-picker>=2.4.0",
     "discord.py>=2.7.1",
     "gidgethub>=5.4.0",
     "graphql-builder==1.0.0a3",
@@ -30,9 +30,6 @@ dev = [
 
 [tool.uv]
 cache-keys = [{ file = "pyproject.toml" }, { git = { commit = true } }]
-
-[tool.uv.sources]
-cherry-picker = { url = "https://github.com/Jackenmen/cherry-picker/archive/109a2f96cca76631387b594111715b329c6f34e9.zip" }
 
 [tool.ruff]
 line-length = 99

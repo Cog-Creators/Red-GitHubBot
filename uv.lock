@@ -411,26 +411,18 @@ wheels = [
 
 [[package]]
 name = "cherry-picker"
-version = "2.1.0"
-source = { url = "https://github.com/Jackenmen/cherry-picker/archive/109a2f96cca76631387b594111715b329c6f34e9.zip" }
+version = "2.4.0"
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "click" },
     { name = "gidgethub" },
     { name = "requests" },
     { name = "tomli", marker = "python_full_version < '3.11'" },
 ]
-sdist = { hash = "sha256:5ad10f094d27a610f86e6706292eb1aa2f972b8389f76fa727068526cc63fee3" }
-
-[package.metadata]
-requires-dist = [
-    { name = "click", specifier = ">=6.0" },
-    { name = "gidgethub" },
-    { name = "pytest", marker = "extra == 'dev'" },
-    { name = "pytest-cov", marker = "extra == 'dev'" },
-    { name = "requests" },
-    { name = "tomli", marker = "python_full_version < '3.11'", specifier = ">=1.1.0" },
+sdist = { url = "https://files.pythonhosted.org/packages/3a/74/e95f44c510a5d2606a19be9816839fbb0d80f7babcc705648aeca9f17f9d/cherry_picker-2.4.0.tar.gz", hash = "sha256:f623538bb56b632b50204a9636ceb591275cf3c9c8e6b6d6e88c7c728077ded3", size = 32204, upload-time = "2024-11-16T17:34:04.647Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/b8/fa/8495b4a8fbe13d5566f5516d3f4212159e81f893fa919162779bbcad1705/cherry_picker-2.4.0-py3-none-any.whl", hash = "sha256:dbc88ba1662268143bd85ef8853ab748652bbbe1864c5e271f060aff80584578", size = 26959, upload-time = "2024-11-16T17:34:02.105Z" },
 ]
-provides-extras = ["dev"]
 
 [[package]]
 name = "click"
@@ -945,7 +937,7 @@ requires-dist = [
     { name = "aiohttp", specifier = ">=3.13.3" },
     { name = "apscheduler", extras = ["sqlalchemy"], specifier = ">=3.11.2" },
     { name = "cachetools", specifier = ">=7.0.5" },
-    { name = "cherry-picker", url = "https://github.com/Jackenmen/cherry-picker/archive/109a2f96cca76631387b594111715b329c6f34e9.zip" },
+    { name = "cherry-picker", specifier = ">=2.4.0" },
     { name = "discord-py", specifier = ">=2.7.1" },
     { name = "gidgethub", specifier = ">=5.4.0" },
     { name = "graphql-builder", specifier = "==1.0.0a3" },
