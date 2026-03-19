@@ -411,17 +411,18 @@ wheels = [
 
 [[package]]
 name = "cherry-picker"
-version = "2.4.0"
+version = "2.6.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "click" },
     { name = "gidgethub" },
     { name = "requests" },
+    { name = "stamina" },
     { name = "tomli", marker = "python_full_version < '3.11'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/3a/74/e95f44c510a5d2606a19be9816839fbb0d80f7babcc705648aeca9f17f9d/cherry_picker-2.4.0.tar.gz", hash = "sha256:f623538bb56b632b50204a9636ceb591275cf3c9c8e6b6d6e88c7c728077ded3", size = 32204, upload-time = "2024-11-16T17:34:04.647Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/17/ca/fb27d067ad3e244d8f416c14f2514b1a1b491c21d0afa00bc71040de68f3/cherry_picker-2.6.0.tar.gz", hash = "sha256:f6a362c450ef033090355bbee94fe3f7c600f23f0da57d27146f55700860d8f9", size = 33272, upload-time = "2025-08-21T12:01:07.056Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/b8/fa/8495b4a8fbe13d5566f5516d3f4212159e81f893fa919162779bbcad1705/cherry_picker-2.4.0-py3-none-any.whl", hash = "sha256:dbc88ba1662268143bd85ef8853ab748652bbbe1864c5e271f060aff80584578", size = 26959, upload-time = "2024-11-16T17:34:02.105Z" },
+    { url = "https://files.pythonhosted.org/packages/ce/58/a2847913d5e83c97f3e1b860d29a96263d1ec5ad88bc2007d9e147ff43a6/cherry_picker-2.6.0-py3-none-any.whl", hash = "sha256:5150467b6ee1c46a42a8f36f246aa76712d0b3fafb5966d7a92bd26e1a4d9352", size = 27842, upload-time = "2025-08-21T12:01:05.54Z" },
 ]
 
 [[package]]
@@ -1236,6 +1237,27 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/33/ac/e5e0a807163652a35be878c0ad5cfd8b1d29605edcadfb5df3c512cdf9f3/sqlalchemy-2.0.40-cp313-cp313-win32.whl", hash = "sha256:a669cbe5be3c63f75bcbee0b266779706f1a54bcb1000f302685b87d1b8c1500", size = 2080704, upload-time = "2025-03-27T18:46:00.193Z" },
     { url = "https://files.pythonhosted.org/packages/1c/cb/f38c61f7f2fd4d10494c1c135ff6a6ddb63508d0b47bccccd93670637309/sqlalchemy-2.0.40-cp313-cp313-win_amd64.whl", hash = "sha256:641ee2e0834812d657862f3a7de95e0048bdcb6c55496f39c6fa3d435f6ac6ad", size = 2104564, upload-time = "2025-03-27T18:46:01.442Z" },
     { url = "https://files.pythonhosted.org/packages/d1/7c/5fc8e802e7506fe8b55a03a2e1dab156eae205c91bee46305755e086d2e2/sqlalchemy-2.0.40-py3-none-any.whl", hash = "sha256:32587e2e1e359276957e6fe5dad089758bc042a971a8a09ae8ecf7a8fe23d07a", size = 1903894, upload-time = "2025-03-27T18:40:43.796Z" },
+]
+
+[[package]]
+name = "stamina"
+version = "25.2.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "tenacity" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/58/b7/8064b246b3d684720080ee8ffbf1dde5caabe852eb9cb53655eb97992af2/stamina-25.2.0.tar.gz", hash = "sha256:fdff938789e8a0c4c496e1ee8a08ee3c7c3351239f235b53e60d4f5964d07e19", size = 565737, upload-time = "2025-12-11T09:16:59.195Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/8f/81/c525760353dff91ae2e4c42c3f3d9bf0bfeecbb6165cc393e86915f1717d/stamina-25.2.0-py3-none-any.whl", hash = "sha256:7f0de7dba735464c256a31e6372c01b8bb51fb6efd649e6773f4ce804462feea", size = 18791, upload-time = "2025-12-11T09:16:57.235Z" },
+]
+
+[[package]]
+name = "tenacity"
+version = "9.1.4"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/47/c6/ee486fd809e357697ee8a44d3d69222b344920433d3b6666ccd9b374630c/tenacity-9.1.4.tar.gz", hash = "sha256:adb31d4c263f2bd041081ab33b498309a57c77f9acf2db65aadf0898179cf93a", size = 49413, upload-time = "2026-02-07T10:45:33.841Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/d7/c1/eb8f9debc45d3b7918a32ab756658a0904732f75e555402972246b0b8e71/tenacity-9.1.4-py3-none-any.whl", hash = "sha256:6095a360c919085f28c6527de529e76a06ad89b23659fa881ae0649b867a9d55", size = 28926, upload-time = "2026-02-07T10:45:32.24Z" },
 ]
 
 [[package]]

@@ -154,6 +154,22 @@ async def backport_task(
                 title="Failed to backport due to a conflict.", summary=summary
             )
             await utils.leave_comment(gh, pr_number, summary)
+        except cherry_picker.GitHubException:
+            summary = (
+                f"Sorry, @{sender}, I'm having trouble communicating with GitHub.\n"
+                f"Please retry by removing and re-adding the **Needs Backport To {branch}** label."
+                "If this issue persist, please report this to Red-GitHubBot's issue tracker"
+                " and backport using [cherry_picker](https://pypi.org/project/cherry-picker/)"
+                " on command line.\n"
+                "```\n"
+                f"cherry_picker {commit_hash} {branch}\n"
+                "```"
+            )
+            conclusion = utils.CheckRunConclusion.FAILURE
+            output = utils.CheckRunOutput(
+                title="Failed to backport due to GitHub issue.", summary=summary
+            )
+            await utils.leave_comment(gh, pr_number, summary)
         except Exception:
             summary = (
                 f"Sorry, @{sender}, I'm having trouble backporting this to `{branch}`.\n"
@@ -198,21 +214,19 @@ async def backport_task(
 
 
 def backport(*, commit_hash: str, branch: str) -> cherry_picker.CherryPicker:
-    cp = _get_cherry_picker(commit_hash=commit_hash, branch=branch)
+    cp = CherryPicker(
+        pr_remote="origin",
+        commit_sha1=commit_hash,
+        branches=[branch],
+        config=CHERRY_PICKER_CONFIG,
+    )
     try:
         cp.backport()
-    except cherry_picker.BranchCheckoutException:
-        # We need to set the state to BACKPORT_PAUSED so that CherryPicker allows us to
-        # abort it, switch back to the default branch, and clean up the backport branch.
-        #
-        # Ideally, we would be able to do it in a less-hacky way but that will require some changes
-        # in the upstream, so for now this is probably the best we can do here.
-        cp.initial_state = cherry_picker.WORKFLOW_STATES.BACKPORT_PAUSED
-        cp.abort_cherry_pick()
-        raise
-    except cherry_picker.CherryPickException:
-        # We need to get a new CherryPicker here to get an up-to-date (PAUSED) state.
-        cp = _get_cherry_picker(commit_hash=commit_hash, branch=branch)
+    except (
+        cherry_picker.BranchCheckoutException,
+        cherry_picker.CherryPickException,
+        cherry_picker.GitHubException,
+    ):
         cp.abort_cherry_pick()
         raise
     return cp
