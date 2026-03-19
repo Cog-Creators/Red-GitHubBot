@@ -60,4 +60,4 @@ jobs:
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
           IMAGE_TO_DEPLOY: ghcr.io/${{ github.repository }}@${{ needs.build.outputs.image_digest }}
-        run: flyctl deploy --image "$IMAGE_TO_DEPLOY"
+        run: flyctl deploy --app red-githubbot --image "$IMAGE_TO_DEPLOY"
