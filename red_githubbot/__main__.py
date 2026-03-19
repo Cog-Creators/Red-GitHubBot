@@ -3,6 +3,7 @@ import os
 
 from aiohttp import web
 
+from . import __version__
 from .utils import SENTRY_DSN
 from .web import app as web_app
 
@@ -17,7 +18,7 @@ def main() -> None:
 
         sentry_sdk.init(
             SENTRY_DSN,
-            release=os.getenv("HEROKU_SLUG_COMMIT"),
+            release=__version__,
             traces_sample_rate=0.1,
             integrations=[PureEvalIntegration()],
         )
