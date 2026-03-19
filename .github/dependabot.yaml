@@ -1,24 +1,32 @@
 version: 2
 updates:
-  - package-ecosystem: "pip"
-    directory: "/"
-    schedule:
-      interval: "daily"
-    # Add assignees
-    assignees:
-      - "Jackenmen"
-    groups:
-      python-requirements:
-        patterns:
-          - "*"
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "monthly"
-    # Add assignees
     assignees:
       - "Jackenmen"
     groups:
       github-actions:
+        patterns:
+          - "*"
+
+  - package-ecosystem: "pre-commit"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    assignees:
+      - "Jackenmen"
+    groups:
+      pre-commit:
+        patterns:
+          - "*"
+
+  - package-ecosystem: "uv"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    groups:
+      python-requirements:
         patterns:
           - "*"
