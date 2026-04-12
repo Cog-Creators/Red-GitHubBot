@@ -7,6 +7,7 @@ import enum
 import functools
 import logging
 import os
+import re
 import subprocess
 from collections.abc import Callable, Coroutine, Generator, Mapping, MutableMapping
 from contextlib import AbstractAsyncContextManager, AbstractContextManager, asynccontextmanager
@@ -495,3 +496,37 @@ async def github_rate_limiter(*, should_sleep: bool = True) -> Generator[None, N
 def capture_exception(exc: BaseException) -> None:
     if SENTRY_DSN:
         sentry_sdk.capture_exception(exc)
+
+
+def parse_trailers(message: str) -> dict[str, list[str]]:
+    blank_line = "\n\n"
+    end = message.rfind(blank_line)
+    if end == -1:
+        return {}
+
+    trailers = {}
+    # This is a more lax parsing that GitHub seems to use for Co-authored-by trailer.
+    # Git's interpret-trailers is more strict and only considers the last section of the message
+    for line in message[end + len(blank_line) :].splitlines():
+        if line.startswith("#"):
+            continue
+        key, _, value = line.partition(": ")
+        if value:
+            trailer_values = trailers.setdefault(key.lower(), [])
+            trailer_values.append(value)
+
+    return trailers
+
+
+_AUTHOR_REGEX = re.compile(r"(.*) <(.*?)>$")
+
+
+def get_coauthors_from_message(message: str) -> list[tuple[str, str]]:
+    values = parse_trailers(message).get("co-authored-by", [])
+    coauthors = []
+    for value in values:
+        match = _AUTHOR_REGEX.search(value)
+        if match is not None:
+            name, email = match.groups()
+            coauthors.append((name, email))
+    return coauthors
