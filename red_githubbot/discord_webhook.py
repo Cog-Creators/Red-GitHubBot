@@ -130,17 +130,21 @@ async def on_pull_request_ready_for_review(event: sansio.Event, *, webhook: Webh
 @_gh_router.register("deployment_status")
 async def on_deployment_status(event: sansio.Event, *, webhook: Webhook) -> None:
     status = event.data["deployment_status"]
+    embed = generate_basic_event_embed(event)
+
     status_state = status["state"]
     if status_state == "error":
         status_text = "errored"
+        embed.color = discord.Color.from_rgb(252, 41, 41)
     elif status_state == "failure":
         status_text = "failed"
+        embed.color = discord.Color.from_rgb(252, 41, 41)
     elif status_state == "success":
         status_text = "succeeded"
+        embed.color = discord.Color.from_rgb(0, 152, 0)
     else:
         return
 
-    embed = generate_basic_event_embed(event)
     embed.title = shorten_to(
         f"{embed.title}Deployment {status_text}: {status['environment']}", 256
     )
