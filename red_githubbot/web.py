@@ -5,6 +5,7 @@ import re
 
 import gidgethub
 from aiohttp import web
+from aiohttp.abc import AccessLogger
 from gidgethub import sansio
 
 from . import discord_webhook, tasks, utils
@@ -107,6 +108,19 @@ async def on_startup(app: web.Application) -> None:
 
 async def on_cleanup(app: web.Application) -> None:
     await utils.session.close()
+
+
+# this is a pretty hacky way to ensure we don't log discord webhook tokens
+# but I frankly see no better way to do this with aiohttp APIs
+class SafeAccessLogger(AccessLogger):
+    @staticmethod
+    def _format_r(request: web.BaseRequest, _response: web.StreamResponse, _time: float) -> str:
+        path = request.path_qs
+        if path.startswith("/discord-webhook/"):
+            parts = path.split("/")
+            parts[3] = "<webhook_token>"
+            path = "/".join(parts)
+        return f"{request.method} {path} HTTP/{request.version.major}.{request.version.minor}"
 
 
 app = web.Application()

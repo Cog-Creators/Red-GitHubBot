@@ -5,7 +5,7 @@ from aiohttp import web
 
 from . import __version__
 from .utils import SENTRY_DSN
-from .web import app as web_app
+from .web import SafeAccessLogger, app as web_app
 
 log = logging.getLogger("red_githubbot")
 
@@ -31,7 +31,7 @@ def main() -> None:
     logging.getLogger("sqlalchemy.engine").setLevel(logging.INFO)
     logging.getLogger("sqlalchemy.pool").setLevel(logging.DEBUG)
     port = int(os.environ.get("PORT", 8080))
-    web.run_app(web_app, port=port)
+    web.run_app(web_app, port=port, access_log_class=SafeAccessLogger)
 
 
 if __name__ == "__main__":
