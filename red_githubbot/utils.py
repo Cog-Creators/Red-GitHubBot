@@ -42,7 +42,7 @@ _gh_installation_tokens_cache: MutableMapping[int, str] = cachetools.TTLCache(
 gh_installation_id_cache: MutableMapping[str, int] = cachetools.LRUCache(100)
 
 parse_markdown = mistune.create_markdown(
-    renderer="ast", plugins=("strikethrough", "table", "task_lists")
+    renderer=None, plugins=("strikethrough", "table", "task_lists")
 )
 
 

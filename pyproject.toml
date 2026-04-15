@@ -13,7 +13,7 @@ dependencies = [
     "discord.py>=2.7.1",
     "gidgethub>=5.4.0",
     "graphql-builder==1.0.0a3",
-    "mistune>=2.0.0rc1",
+    "mistune>=3",
     "psycopg2>=2.9.11",
     "regex>=2026.2.28",
     "sentry-sdk[pure-eval]>=2.55.0",

@@ -24,13 +24,16 @@ when no custom handlers are found that can handle the event (and its action, if 
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+import itertools
+from collections.abc import Iterable, Sequence
 from typing import Any
 
 import discord
+import mistune
 import yarl
 from aiohttp import web
 from gidgethub import routing, sansio
+from mistune.renderers.markdown import MarkdownRenderer
 
 from . import utils
 
@@ -38,6 +41,77 @@ _gh_router = routing.Router()
 _GITHUB_AVATAR_URL = (
     "https://cdn.discordapp.com/avatars/354986384542662657/df91181b3f1cf0ef1592fbe18e0962d7.png"
 )
+
+
+class DiscordMarkdownRenderer(MarkdownRenderer):
+    def __init__(self, max_length: int) -> None:
+        self.__max_len = max_length
+        self.__current_len = 0
+        self.__last_token_ellipsis = False
+
+    def iter_tokens(
+        self, tokens: Iterable[dict[str, Any]], state: mistune.BlockState
+    ) -> Iterable[str]:
+        it1, it2 = itertools.tee(super().iter_tokens(tokens, state))
+        if next(it2, None) is None:
+            return
+
+        max_len = self.__max_len
+        ellipsis = "\n\N{HORIZONTAL ELLIPSIS}\n"
+        ellipsis_len = len(ellipsis)
+        for token, next_token in itertools.zip_longest(it1, it2):
+            length_with_token = self.__current_len + len(token)
+            if length_with_token > max_len:
+                if not self.__last_token_ellipsis:
+                    self.__last_token_ellipsis = True
+                    self.__current_len += ellipsis_len
+                    yield ellipsis
+            elif length_with_token > max_len - ellipsis_len:
+                if next_token is None:
+                    self.__last_token_ellipsis = False
+                    self.__current_len = length_with_token
+                    yield token
+                elif not self.__last_token_ellipsis:
+                    self.__last_token_ellipsis = True
+                    self.__current_len += ellipsis_len
+                    yield ellipsis
+            else:
+                self.__last_token_ellipsis = False
+                self.__current_len = length_with_token
+                yield token
+
+    def render_references(self, state: mistune.BlockState) -> Iterable[str]:
+        yield from ()
+
+    def link(self, token: dict[str, Any], state: mistune.BlockState) -> str:
+        if token.get("label"):
+            return self.render_children(token, state)
+        return super().link(token, state)
+
+    def table(self, token: dict[str, Any], state: mistune.BlockState) -> str:
+        return "<a table was here>"
+
+
+def render_gfm_to_discord(s: str, max_length: int) -> str:
+    markdown = mistune.create_markdown(
+        renderer=DiscordMarkdownRenderer(max_length),
+        plugins=("strikethrough", "table", "task_lists"),
+    )
+    return markdown(s)
+
+
+@_gh_router.register("pull_request", action="opened")
+async def on_pull_request_opened(event: sansio.Event, *, webhook: Webhook) -> None:
+    pr_data = event.data["pull_request"]
+
+    embed = generate_basic_event_embed(event)
+    embed.title = shorten_to(
+        f"{embed.title}Pull request opened: #{pr_data['number']}: {pr_data['title']}", 256
+    )
+    embed.url = pr_data["html_url"]
+    embed.description = render_gfm_to_discord(pr_data["body"], 4096)
+    embed.color = discord.Color.from_rgb(0, 152, 0)
+    await webhook.send(embed=embed)
 
 
 @_gh_router.register("deployment_status")

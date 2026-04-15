@@ -1125,7 +1125,7 @@ requires-dist = [
     { name = "discord-py", specifier = ">=2.7.1" },
     { name = "gidgethub", specifier = ">=5.4.0" },
     { name = "graphql-builder", specifier = "==1.0.0a3" },
-    { name = "mistune", specifier = ">=2.0.0rc1" },
+    { name = "mistune", specifier = ">=3" },
     { name = "psycopg2", specifier = ">=2.9.11" },
     { name = "regex", specifier = ">=2026.2.28" },
     { name = "sentry-sdk", extras = ["pure-eval"], specifier = ">=2.55.0" },
