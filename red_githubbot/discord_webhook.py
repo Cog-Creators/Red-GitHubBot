@@ -111,6 +111,8 @@ async def on_pull_request_opened(event: sansio.Event, *, webhook: Webhook) -> No
     embed.url = pr_data["html_url"]
     embed.description = render_gfm_to_discord(pr_data["body"], 4096)
     embed.color = discord.Color.from_rgb(0, 152, 0)
+    if pr_data["draft"]:
+        embed.add_field(name="Status", value="Draft")
     await webhook.send(embed=embed)
 
 
