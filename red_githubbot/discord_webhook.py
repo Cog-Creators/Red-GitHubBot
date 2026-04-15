@@ -114,6 +114,19 @@ async def on_pull_request_opened(event: sansio.Event, *, webhook: Webhook) -> No
     await webhook.send(embed=embed)
 
 
+@_gh_router.register("pull_request", action="ready_for_review")
+async def on_pull_request_ready_for_review(event: sansio.Event, *, webhook: Webhook) -> None:
+    pr_data = event.data["pull_request"]
+
+    embed = generate_basic_event_embed(event)
+    embed.title = shorten_to(
+        f"{embed.title}Pull request #{pr_data['number']} marked as ready for review", 256
+    )
+    embed.url = pr_data["html_url"]
+    embed.color = discord.Color.from_rgb(0, 152, 0)
+    await webhook.send(embed=embed)
+
+
 @_gh_router.register("deployment_status")
 async def on_deployment_status(event: sansio.Event, *, webhook: Webhook) -> None:
     status = event.data["deployment_status"]
