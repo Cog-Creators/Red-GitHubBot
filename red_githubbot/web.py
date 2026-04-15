@@ -1,10 +1,12 @@
 import asyncio
+import functools
 import logging
 import os
 import re
 
 import gidgethub
 from aiohttp import web
+from aiohttp.web_log import KeyMethod
 from gidgethub import sansio
 
 from . import discord_webhook, tasks, utils
@@ -112,6 +114,41 @@ async def on_cleanup(app: web.Application) -> None:
 # this is a pretty hacky way to ensure we don't log discord webhook tokens
 # but I frankly see no better way to do this with aiohttp APIs
 class SafeAccessLogger(web.AccessLogger):
+    _FORMAT_CACHE: dict[str, tuple[str, list[KeyMethod]]] = {}
+
+    def __init__(
+        self, logger: logging.Logger, log_format: str = web.AccessLogger.LOG_FORMAT
+    ) -> None:
+        # this is the same implementation as in the base class except without hard-coded class ref
+        super(web.AccessLogger, self).__init__(logger, log_format=log_format)
+
+        _compiled_format = self._FORMAT_CACHE.get(log_format)
+        if not _compiled_format:
+            _compiled_format = self.compile_format(log_format)
+            self._FORMAT_CACHE[log_format] = _compiled_format
+
+        self._log_format, self._methods = _compiled_format
+
+    def compile_format(self, log_format: str) -> tuple[str, list[KeyMethod]]:
+        # this is the same implementation as in the base class except without hard-coded class ref
+        methods = []
+
+        for atom in self.FORMAT_RE.findall(log_format):
+            if atom[1] == "":
+                format_key1 = self.LOG_FORMAT_MAP[atom[0]]
+                m = getattr(self, "_format_%s" % atom[0])
+                key_method = KeyMethod(format_key1, m)
+            else:
+                format_key2 = (self.LOG_FORMAT_MAP[atom[2]], atom[1])
+                m = getattr(self, "_format_%s" % atom[2])
+                key_method = KeyMethod(format_key2, functools.partial(m, atom[1]))
+
+            methods.append(key_method)
+
+        log_format = self.FORMAT_RE.sub(r"%s", log_format)
+        log_format = self.CLEANUP_RE.sub(r"%\1", log_format)
+        return log_format, methods
+
     @staticmethod
     def _format_r(request: web.BaseRequest, _response: web.StreamResponse, _time: float) -> str:
         path = request.path_qs
