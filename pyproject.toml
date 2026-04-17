@@ -25,7 +25,7 @@ dynamic = ["version"]
 
 [dependency-groups]
 dev = [
-    "ruff>=0.15.6",
+    "ruff>=0.15.11",
 ]
 
 [tool.uv]
