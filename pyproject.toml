@@ -13,6 +13,7 @@ dependencies = [
     "discord.py>=2.7.1",
     "gidgethub>=5.4.0",
     "graphql-builder==1.0.0a3",
+    "markdownify>=1.2.2",
     "mistune>=3",
     "psycopg2>=2.9.11",
     "regex>=2026.2.28",

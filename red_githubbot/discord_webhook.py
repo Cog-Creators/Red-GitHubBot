@@ -33,6 +33,7 @@ import mistune
 import yarl
 from aiohttp import web
 from gidgethub import routing, sansio
+from markdownify import markdownify
 from mistune.renderers.markdown import MarkdownRenderer
 
 from . import utils
@@ -97,7 +98,7 @@ def render_gfm_to_discord(s: str, max_length: int) -> str:
         renderer=DiscordMarkdownRenderer(max_length),
         plugins=("strikethrough", "table", "task_lists"),
     )
-    return markdown(s)
+    return markdown(markdownify(s, escape_asterisks=False, escape_underscores=False))
 
 
 @_gh_router.register("pull_request", action="opened")
