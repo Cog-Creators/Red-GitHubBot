@@ -32,8 +32,9 @@ import discord
 import mistune
 import yarl
 from aiohttp import web
+from bs4 import NavigableString
 from gidgethub import routing, sansio
-from markdownify import markdownify
+from markdownify import MarkdownConverter
 from mistune.renderers.markdown import MarkdownRenderer
 
 from . import utils
@@ -95,13 +96,28 @@ class DiscordMarkdownRenderer(MarkdownRenderer):
     def strikethrough(self, token: dict[str, Any], state: mistune.BlockState) -> str:
         return f"~~{self.render_children(token, state)}~~"
 
+    def thematic_break(self, token: dict[str, Any], state: mistune.BlockState) -> str:
+        return "---\n\n"
+
+
+class WhitespacePreservingMarkdownConverter(MarkdownConverter):
+    def process_text(self, el: NavigableString, parent_tags: set[str] | None = None) -> str:
+        parent_tags = set(parent_tags or ())
+        # process_text() skips whitespace normalization inside a preformatted element,
+        # let's use that!
+        parent_tags.add("pre")
+        return super().process_text(el, parent_tags)
+
 
 def render_gfm_to_discord(s: str, max_length: int) -> str:
     markdown = mistune.create_markdown(
         renderer=DiscordMarkdownRenderer(max_length),
         plugins=("strikethrough", "table", "task_lists"),
     )
-    return markdown(markdownify(s, escape_asterisks=False, escape_underscores=False))
+    converter = WhitespacePreservingMarkdownConverter(
+        escape_asterisks=False, escape_underscores=False
+    )
+    return markdown(converter.convert(s))
 
 
 @_gh_router.register("pull_request", action="opened")
