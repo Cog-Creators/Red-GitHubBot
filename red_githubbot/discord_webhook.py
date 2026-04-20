@@ -92,6 +92,9 @@ class DiscordMarkdownRenderer(MarkdownRenderer):
     def table(self, token: dict[str, Any], state: mistune.BlockState) -> str:
         return "<a table was here>"
 
+    def strikethrough(self, token: dict[str, Any], state: mistune.BlockState) -> str:
+        return f"~~{self.render_children(token, state)}~~"
+
 
 def render_gfm_to_discord(s: str, max_length: int) -> str:
     markdown = mistune.create_markdown(
