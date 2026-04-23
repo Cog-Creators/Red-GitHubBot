@@ -22,8 +22,6 @@ in setting some common properties for event embeds, see its docstring for more d
 when no custom handlers are found that can handle the event (and its action, if any).
 """
 
-from __future__ import annotations
-
 import itertools
 from collections.abc import Iterable, Sequence
 from typing import Any
