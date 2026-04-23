@@ -24,7 +24,7 @@ when no custom handlers are found that can handle the event (and its action, if 
 
 import itertools
 from collections.abc import Iterable, Sequence
-from typing import Any
+from typing import Any, Self
 
 import discord
 import mistune
@@ -41,16 +41,69 @@ _gh_router = routing.Router()
 _GITHUB_AVATAR_URL = (
     "https://cdn.discordapp.com/avatars/354986384542662657/df91181b3f1cf0ef1592fbe18e0962d7.png"
 )
+_GFM_PLUGINS = ("strikethrough", "table", "task_lists")
 
 
 class DiscordMarkdownRenderer(MarkdownRenderer):
-    def __init__(self, max_length: int) -> None:
+    def __init__(
+        self,
+        max_length: int,
+        *,
+        base_component_count: int = 0,
+        max_component_count: int = 40,
+    ) -> None:
         self.__max_len = max_length
+        self.__base_component_count = base_component_count
+        self.__max_component_count = max_component_count
         self.__current_len = 0
         self.__last_token_ellipsis = False
+        self._images: list[str] = []
+
+    def iter_ui_items(
+        self, tokens: Iterable[dict[str, Any]], state: mistune.BlockState
+    ) -> Iterable[discord.ui.Item]:
+        last_images_length = 0
+        ellipsis = "\n\N{HORIZONTAL ELLIPSIS}\n"
+        pending_tokens = []
+        component_count = self.__base_component_count
+        max_component_count = self.__max_component_count
+
+        for token in self.iter_tokens(tokens, state, _ignore_images=True):
+            images_length = len(self._images)
+            if images_length == last_images_length:
+                pending_tokens.append(token)
+                continue
+            if component_count == (max_component_count - 1):
+                yield discord.ui.TextDisplay(ellipsis)
+                return
+
+            if pending_tokens:
+                yield discord.ui.TextDisplay("".join(pending_tokens))
+                component_count += 1
+
+            images = self._images[last_images_length:]
+            if len(images) > 1:
+                gallery = discord.ui.MediaGallery()
+                for image_url in images[:10]:
+                    gallery.add_item(image_url)
+                yield gallery
+                component_count += 1
+            else:
+                yield discord.ui.Section(
+                    discord.ui.TextDisplay("\u200b"), accessory=discord.ui.Thumbnail(image_url)
+                )
+                component_count += 3
+            last_images_length = images_length
+
+        if pending_tokens:
+            yield discord.ui.TextDisplay("".join(pending_tokens))
 
     def iter_tokens(
-        self, tokens: Iterable[dict[str, Any]], state: mistune.BlockState
+        self,
+        tokens: Iterable[dict[str, Any]],
+        state: mistune.BlockState,
+        *,
+        _ignore_images: bool = False,
     ) -> Iterable[str]:
         it1, it2 = itertools.tee(super().iter_tokens(tokens, state))
         if next(it2, None) is None:
@@ -59,7 +112,12 @@ class DiscordMarkdownRenderer(MarkdownRenderer):
         max_len = self.__max_len
         ellipsis = "\n\N{HORIZONTAL ELLIPSIS}\n"
         ellipsis_len = len(ellipsis)
+        last_images_length = 0
         for token, next_token in itertools.zip_longest(it1, it2):
+            images_length = len(self._images)
+            if _ignore_images and images_length > last_images_length:
+                last_images_length = images_length
+                token = "\u200b"
             length_with_token = self.__current_len + len(token)
             if length_with_token > max_len:
                 if not self.__last_token_ellipsis:
@@ -86,6 +144,7 @@ class DiscordMarkdownRenderer(MarkdownRenderer):
     def image(self, token: dict[str, Any], state: mistune.BlockState) -> str:
         if token.get("label"):
             return self.render_children(token, state)
+        self._images.append(token["attrs"]["url"])
         return super().image(token, state)
 
     def link(self, token: dict[str, Any], state: mistune.BlockState) -> str:
@@ -112,19 +171,125 @@ class WhitespacePreservingMarkdownConverter(MarkdownConverter):
         return super().process_text(el, parent_tags)
 
 
-def render_gfm_to_discord(s: str, max_length: int) -> str:
-    markdown = mistune.create_markdown(
-        renderer=DiscordMarkdownRenderer(max_length),
-        plugins=("strikethrough", "table", "task_lists"),
-    )
+class MarkdownContainer(discord.ui.Container):
+    _title_component = discord.ui.TextDisplay("")
+
+    def __init__(self) -> None:
+        super().__init__()
+        self._title = ""
+        self._url = ""
+
+    def _update_title_component(self) -> None:
+        if not self._title:
+            self._title_component.content = ""
+            return
+        text = f"[{self._title}]({self._url})" if self._url else self._title
+        self._title_component = f"### {text}"
+
+    @property
+    def title(self) -> str:
+        return self._title
+
+    @title.setter
+    def title(self, value: str) -> None:
+        self._title = value
+        self._update_title_component()
+
+    @property
+    def url(self) -> str:
+        return self._url
+
+    @url.setter
+    def url(self, value: str) -> None:
+        self._url = value
+        self._update_title_component()
+
+
+class MarkdownView(discord.ui.LayoutView):
+    _container = MarkdownContainer()
+
+    def __init__(
+        self,
+        *,
+        title: str = "",
+        url: str = "",
+        color: discord.Color | int | None = None,
+    ) -> None:
+        self.title = title
+        self.url = url
+        self.color = color
+        super().__init__(timeout=None)
+
+    def add_container_item(self, item: discord.ui.Item[Any]) -> Self:
+        self._container.add_item(item)
+        return self
+
+    @property
+    def title(self) -> str:
+        return self._container.title
+
+    @title.setter
+    def title(self, value: str) -> None:
+        self._container.title = value
+
+    @property
+    def url(self) -> str:
+        return self._container.url
+
+    @url.setter
+    def url(self, value: str) -> None:
+        self._container.url = value
+
+    @property
+    def color(self) -> discord.Color | int | None:
+        return self._container.accent_color
+
+    @color.setter
+    def color(self, value: discord.Color | int | None) -> None:
+        self._container.accent_color = value
+
+
+def convert_gfm_html_to_md(s: str) -> str:
     converter = WhitespacePreservingMarkdownConverter(
         escape_asterisks=False, escape_underscores=False
     )
-    return markdown(converter.convert(s))
+    return converter.convert(s)
+
+
+def render_gfm_to_discord(s: str, max_length: int) -> str:
+    markdown = mistune.create_markdown(
+        renderer=DiscordMarkdownRenderer(max_length), plugins=_GFM_PLUGINS
+    )
+    return markdown(convert_gfm_html_to_md(s))
+
+
+def render_gfm_to_discord_components(
+    s: str,
+    *,
+    max_length: int,
+    base_component_count: int = 0,
+    max_component_count: int = 40,
+) -> Iterable[str]:
+    markdown = mistune.create_markdown(renderer=None, plugins=_GFM_PLUGINS)
+    tokens, state = markdown.parse(convert_gfm_html_to_md(s))
+
+    renderer = DiscordMarkdownRenderer(
+        max_length,
+        base_component_count=base_component_count,
+        max_component_count=max_component_count,
+    )
+    yield from renderer.iter_ui_items(tokens, state)
 
 
 @_gh_router.register("pull_request", action="opened")
 async def on_pull_request_opened(event: sansio.Event, *, webhook: Webhook) -> None:
+    if utils.FEATURE_FLAGS.render_prs_with_components:
+        await _on_pull_request_opened_components(event, webhook=webhook)
+    else:
+        await _on_pull_request_opened_embed(event, webhook=webhook)
+
+
+async def _on_pull_request_opened_embed(event: sansio.Event, *, webhook: Webhook) -> None:
     pr_data = event.data["pull_request"]
 
     embed = generate_basic_event_embed(event)
@@ -137,6 +302,35 @@ async def on_pull_request_opened(event: sansio.Event, *, webhook: Webhook) -> No
     if pr_data["draft"]:
         embed.add_field(name="Status", value="Draft")
     await webhook.send(embed=embed)
+
+
+async def _on_pull_request_opened_components(event: sansio.Event, *, webhook: Webhook) -> None:
+    pr_data = event.data["pull_request"]
+
+    embed = generate_basic_event_embed(event)
+    view = MarkdownView(
+        title=shorten_to(
+            f"{embed.title}Pull request opened: #{pr_data['number']}: {pr_data['title']}", 256
+        ),
+        url=pr_data["html_url"],
+        color=discord.Color.from_rgb(0, 152, 0),
+    )
+    footer = discord.TextDisplay()
+    if pr_data["draft"]:
+        footer.content = "-# This PR is a draft."
+
+    for item in render_gfm_to_discord_components(
+        pr_data["body"],
+        max_length=4000 - view.content_length() - len(footer.content),
+        base_component_count=view.total_children_count,
+        max_component_count=40 - bool(footer.content),
+    ):
+        view.add_container_item(item)
+
+    if footer.content:
+        view.add_container_item(footer)
+
+    await webhook.send(view=view)
 
 
 @_gh_router.register("pull_request", action="ready_for_review")

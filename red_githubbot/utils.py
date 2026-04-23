@@ -69,6 +69,8 @@ class FeatureFlagsBase:
 class FeatureFlags(FeatureFlagsBase):
     """Feature flags that can be optionally enabled when running the app."""
 
+    render_prs_with_components: bool
+
 
 FEATURE_FLAGS = FeatureFlags()
 
