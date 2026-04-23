@@ -1,3 +1,4 @@
+import annotationlib
 import asyncio
 import dataclasses
 import datetime
@@ -42,6 +43,34 @@ gh_installation_id_cache: MutableMapping[str, int] = cachetools.LRUCache(100)
 parse_markdown = mistune.create_markdown(
     renderer=None, plugins=("strikethrough", "table", "task_lists")
 )
+
+
+class FeatureFlagsBase:
+    _FEATURE_FLAG_NAMES: tuple[str, ...] = ()
+
+    def __init__(self) -> None:
+        for flag_name in self._FEATURE_FLAG_NAMES:
+            setattr(self, flag_name, self._parse_feature_flag_from_env(flag_name))
+
+    def __init_subclass__(cls) -> None:
+        annotations = annotationlib.get_annotations(cls, format=annotationlib.Format.FORWARDREF)
+        cls._FEATURE_FLAG_NAMES = tuple(name for name, typ in annotations.items() if typ is bool)
+
+    @staticmethod
+    def _parse_feature_flag_from_env(flag_name: str) -> bool:
+        value = os.environ.get(f"FEATURE_{flag_name.upper()}", "")
+        if value == "1":
+            return True
+        if value in ("0", ""):
+            return False
+        raise ValueError()
+
+
+class FeatureFlags(FeatureFlagsBase):
+    """Feature flags that can be optionally enabled when running the app."""
+
+
+FEATURE_FLAGS = FeatureFlags()
 
 
 async def on_startup(app: web.Application) -> None:
