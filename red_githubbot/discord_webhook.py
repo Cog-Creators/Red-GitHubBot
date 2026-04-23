@@ -315,7 +315,7 @@ async def _on_pull_request_opened_components(event: sansio.Event, *, webhook: We
         url=pr_data["html_url"],
         color=discord.Color.from_rgb(0, 152, 0),
     )
-    footer = discord.TextDisplay("")
+    footer = discord.ui.TextDisplay("")
     if pr_data["draft"]:
         footer.content = "-# This PR is a draft."
 
