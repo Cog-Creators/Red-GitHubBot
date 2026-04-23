@@ -1,5 +1,5 @@
 # build stage
-FROM python:3.10-bullseye AS build
+FROM python:3.14-trixie AS build
 
 # Install system dependencies required for building
 RUN set -x \
@@ -37,7 +37,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 
 # actual application image
-FROM python:3.10-bullseye
+FROM python:3.14-trixie
 
 ENV PYTHONUNBUFFERED=1
 

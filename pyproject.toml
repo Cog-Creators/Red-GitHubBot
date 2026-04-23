@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "Red-GitHubBot"
-requires-python = ">=3.10"
+requires-python = ">=3.14"
 dependencies = [
     "aiohttp>=3.13.3",
     "apscheduler[sqlalchemy]>=3.11.2",
