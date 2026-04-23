@@ -83,6 +83,11 @@ class DiscordMarkdownRenderer(MarkdownRenderer):
     def render_references(self, state: mistune.BlockState) -> Iterable[str]:
         yield from ()
 
+    def image(self, token: dict[str, Any], state: mistune.BlockState) -> str:
+        if token.get("label"):
+            return self.render_children(token, state)
+        return super().image(token, state)
+
     def link(self, token: dict[str, Any], state: mistune.BlockState) -> str:
         if token.get("label"):
             return self.render_children(token, state)
