@@ -34,6 +34,7 @@ from bs4 import NavigableString
 from gidgethub import routing, sansio
 from markdownify import MarkdownConverter
 from mistune.renderers.markdown import MarkdownRenderer
+from mistune.util import strip_end
 
 from . import utils
 
@@ -57,46 +58,69 @@ class DiscordMarkdownRenderer(MarkdownRenderer):
         self.__max_component_count = max_component_count
         self.__current_len = 0
         self.__last_token_ellipsis = False
+        self.__last_images_len = 0
         self._images: list[str] = []
+        self._current_paragraph: list[list[str] | int] | None = None
 
     def iter_ui_items(
         self, tokens: Iterable[dict[str, Any]], state: mistune.BlockState
     ) -> Iterable[discord.ui.Item]:
-        last_images_length = 0
-        ellipsis = "\n\N{HORIZONTAL ELLIPSIS}\n"
-        pending_tokens = []
         component_count = self.__base_component_count
         max_component_count = self.__max_component_count
+        for item in self._iter_ui_items(tokens, state):
+            if isinstance(item, discord.ui.Section):
+                component_count += 3
+            else:
+                component_count += 1
 
-        for token in self.iter_tokens(tokens, state, _ignore_images=True):
+            if component_count == max_component_count:
+                yield discord.ui.TextDisplay("\N{HORIZONTAL ELLIPSIS}")
+                return
+            yield item
+
+    def _iter_ui_items(  # noqa: C901
+        self, tokens: Iterable[dict[str, Any]], state: mistune.BlockState
+    ) -> Iterable[discord.ui.Item]:
+        last_images_length = 0
+        pending_tokens = []
+
+        it = iter(self.iter_tokens(tokens, state, _ignore_images=True))
+        for token in it:
             images_length = len(self._images)
             if images_length == last_images_length:
                 pending_tokens.append(token)
                 continue
-            if component_count == (max_component_count - 1):
-                yield discord.ui.TextDisplay(ellipsis)
-                return
 
             if pending_tokens:
-                yield discord.ui.TextDisplay("".join(pending_tokens))
-                component_count += 1
+                yield discord.ui.TextDisplay(strip_end("".join(pending_tokens)))
+                pending_tokens.clear()
 
-            images = self._images[last_images_length:]
-            if len(images) > 1:
+            if self._current_paragraph is not None:
+                for part in self._current_paragraph:
+                    if isinstance(part, int):
+                        yield discord.ui.Section(
+                            discord.ui.TextDisplay("\u200b"),
+                            accessory=discord.ui.Thumbnail(self._images[part]),
+                        )
+                    elif part:
+                        yield discord.ui.TextDisplay(strip_end("".join(part)))
+                self._current_paragraph = None
+                next(it, None)
+            elif images_length - last_images_length > 1:
                 gallery = discord.ui.MediaGallery()
-                for image_url in images[:10]:
+                for image_url in self._images[last_images_length:][:10]:
                     gallery.add_item(media=image_url)
                 yield gallery
-                component_count += 1
             else:
                 yield discord.ui.Section(
-                    discord.ui.TextDisplay("\u200b"), accessory=discord.ui.Thumbnail(image_url)
+                    discord.ui.TextDisplay("\u200b"),
+                    accessory=discord.ui.Thumbnail(image_url),
                 )
-                component_count += 3
             last_images_length = images_length
 
         if pending_tokens:
-            yield discord.ui.TextDisplay("".join(pending_tokens))
+            yield discord.ui.TextDisplay(strip_end("".join(pending_tokens)))
+            pending_tokens.clear()
 
     def iter_tokens(
         self,
@@ -112,11 +136,12 @@ class DiscordMarkdownRenderer(MarkdownRenderer):
         max_len = self.__max_len
         ellipsis = "\n\N{HORIZONTAL ELLIPSIS}\n"
         ellipsis_len = len(ellipsis)
-        last_images_length = 0
         for token, next_token in itertools.zip_longest(it1, it2):
             images_length = len(self._images)
-            if _ignore_images and images_length > last_images_length:
-                last_images_length = images_length
+            yield_nothing = False
+            if _ignore_images and images_length > self.__last_images_len:
+                self.__last_images_len = images_length
+                yield_nothing = True
                 token = "\u200b"
             length_with_token = self.__current_len + len(token)
             if length_with_token > max_len:
@@ -128,7 +153,7 @@ class DiscordMarkdownRenderer(MarkdownRenderer):
                 if next_token is None:
                     self.__last_token_ellipsis = False
                     self.__current_len = length_with_token
-                    yield token
+                    yield "" if yield_nothing else token
                 elif not self.__last_token_ellipsis:
                     self.__last_token_ellipsis = True
                     self.__current_len += ellipsis_len
@@ -136,10 +161,26 @@ class DiscordMarkdownRenderer(MarkdownRenderer):
             else:
                 self.__last_token_ellipsis = False
                 self.__current_len = length_with_token
-                yield token
+                yield "" if yield_nothing else token
 
     def render_references(self, state: mistune.BlockState) -> Iterable[str]:
         yield from ()
+
+    def paragraph(self, token: dict[str, Any], state: mistune.BlockState) -> str:
+        parts: list[str] = []
+        current_paragraph = self._current_paragraph = [parts]
+        for child_token in token["children"]:
+            if child_token["type"] == "image":
+                parts = []
+                current_paragraph.append(len(self._images))
+                self._images.append(child_token["attrs"]["url"])
+                current_paragraph.append(parts)
+            else:
+                parts.append(self.render_token(child_token, state))
+
+        return (
+            "".join("".join(part) for part in current_paragraph if isinstance(part, list)) + "\n\n"
+        )
 
     def image(self, token: dict[str, Any], state: mistune.BlockState) -> str:
         if token.get("label"):
