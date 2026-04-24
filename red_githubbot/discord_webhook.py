@@ -225,7 +225,7 @@ class MarkdownContainer(discord.ui.Container):
             self._title_component.content = ""
             return
         text = f"[{self._title}]({self._url})" if self._url else self._title
-        self._title_component = f"### {text}"
+        self._title_component.content = f"### {text}"
 
     @property
     def title(self) -> str:
