@@ -85,7 +85,7 @@ class DiscordMarkdownRenderer(MarkdownRenderer):
             if len(images) > 1:
                 gallery = discord.ui.MediaGallery()
                 for image_url in images[:10]:
-                    gallery.add_item(image_url)
+                    gallery.add_item(media=image_url)
                 yield gallery
                 component_count += 1
             else:
