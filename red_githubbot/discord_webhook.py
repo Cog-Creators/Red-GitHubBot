@@ -338,7 +338,7 @@ async def _on_pull_request_opened_embed(event: sansio.Event, *, webhook: Webhook
         f"{embed.title}Pull request opened: #{pr_data['number']}: {pr_data['title']}", 256
     )
     embed.url = pr_data["html_url"]
-    embed.description = render_gfm_to_discord(pr_data["body"], 4096)
+    embed.description = render_gfm_to_discord(pr_data["body"] or "", 4096)
     embed.color = discord.Color.from_rgb(0, 152, 0)
     if pr_data["draft"]:
         embed.add_field(name="Status", value="Draft")
@@ -361,7 +361,7 @@ async def _on_pull_request_opened_components(event: sansio.Event, *, webhook: We
         footer.content = "-# This PR is a draft."
 
     for item in render_gfm_to_discord_components(
-        pr_data["body"],
+        pr_data["body"] or "",
         max_length=4000 - view.content_length() - len(footer.content),
         base_component_count=view.total_children_count,
         max_component_count=40 - bool(footer.content),
