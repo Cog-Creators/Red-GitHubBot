@@ -8,7 +8,7 @@ requires-python = ">=3.14"
 dependencies = [
     "aiohttp>=3.13.3",
     "apscheduler[sqlalchemy]>=3.11.2",
-    "cachetools>=7.0.6",
+    "cachetools>=7.1.0",
     "cherry-picker>=2.4.0",
     "discord.py>=2.7.1",
     "gidgethub>=5.4.0",
