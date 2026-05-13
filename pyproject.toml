@@ -17,7 +17,7 @@ dependencies = [
     "mistune>=3.2.1",
     "psycopg2>=2.9.12",
     "regex>=2026.5.9",
-    "sentry-sdk[pure-eval]>=2.59.0",
+    "sentry-sdk[pure-eval]>=2.60.0",
     "yarl>=1.23.0",
 ]
 dynamic = ["version"]
