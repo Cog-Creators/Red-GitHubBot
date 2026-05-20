@@ -8,7 +8,7 @@ requires-python = ">=3.14"
 dependencies = [
     "aiohttp>=3.13.3",
     "apscheduler[sqlalchemy]>=3.11.2",
-    "cachetools>=7.1.1",
+    "cachetools>=7.1.3",
     "cherry-picker>=2.4.0",
     "discord.py>=2.7.1",
     "gidgethub>=5.4.0",
@@ -18,7 +18,7 @@ dependencies = [
     "psycopg2>=2.9.12",
     "regex>=2026.5.9",
     "sentry-sdk[pure-eval]>=2.60.0",
-    "yarl>=1.23.0",
+    "yarl>=1.24.2",
 ]
 dynamic = ["version"]
 
@@ -26,7 +26,7 @@ dynamic = ["version"]
 
 [dependency-groups]
 dev = [
-    "ruff>=0.15.12",
+    "ruff>=0.15.13",
 ]
 
 [tool.uv]
