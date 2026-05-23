@@ -342,6 +342,9 @@ async def _on_pull_request_opened_embed(event: sansio.Event, *, webhook: Webhook
     embed.color = discord.Color.from_rgb(0, 152, 0)
     if pr_data["draft"]:
         embed.add_field(name="Status", value="Draft")
+    milestone_data = pr_data["milestone"]
+    if milestone_data is not None:
+        embed.add_field(name="Milestone", value=milestone_data["title"])
     await webhook.send(embed=embed)
 
 
@@ -357,8 +360,14 @@ async def _on_pull_request_opened_components(event: sansio.Event, *, webhook: We
         color=discord.Color.from_rgb(0, 152, 0),
     )
     footer = discord.ui.TextDisplay("")
+    footer_parts = []
     if pr_data["draft"]:
-        footer.content = "-# This PR is a draft."
+        footer_parts.append("-# This PR is a draft.")
+    milestone_data = pr_data["milestone"]
+    if milestone_data is not None:
+        footer_parts.append(f"-# Milestone: {milestone_data['title']}")
+    if footer_parts:
+        footer.content = "\n".join(footer_parts)
 
     for item in render_gfm_to_discord_components(
         pr_data["body"] or "",
