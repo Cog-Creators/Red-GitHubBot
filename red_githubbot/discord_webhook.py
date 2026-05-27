@@ -396,6 +396,66 @@ async def on_pull_request_ready_for_review(event: sansio.Event, *, webhook: Webh
     await webhook.send(embed=embed)
 
 
+GET_LAST_REVIEW_FROM_REVIEWER_QUERY = utils.minify_graphql_call(
+    """
+    query getReviewsFromReviewer(
+        $repo_owner: String!
+        $repo_name: String!
+        $pr_number: Int!
+        $reviewer: String!
+    ) {
+        repository(owner: $repo_owner, name: $repo_name) {
+            pullRequest(number: $pr_number) {
+                reviews(
+                    author: $reviewer
+                    last: 1
+                    states: [APPROVED, CHANGES_REQUESTED, DISMISSED]
+                ) {
+                    nodes {
+                        state
+                    }
+                }
+            }
+        }
+    }
+    """
+)
+
+
+@_gh_router.register("pull_request", action="review_requested")
+async def on_pull_request_review_requested(event: sansio.Event, *, webhook: Webhook) -> None:
+    repo_data = event.data["repository"]
+    pr_data = event.data["pull_request"]
+    reviewer = (pr_data.get("requested_reviewer") or {}).get("login")
+    if reviewer is None:
+        await execute_default_github_webhook(event, webhook=webhook)
+        return
+
+    review_data = await utils.machine_gh.graphql(
+        GET_LAST_REVIEW_FROM_REVIEWER_QUERY,
+        repo_owner=repo_data["owner"]["login"],
+        repo_name=repo_data["name"],
+        pr_number=pr_data["number"],
+        reviewer=reviewer,
+    )
+    reviews = review_data["repository"]["pullRequest"]["reviews"]["nodes"]
+    rereview = bool(reviews)
+    if not rereview:
+        await execute_default_github_webhook(event, webhook=webhook)
+        return
+
+    embed = generate_basic_event_embed(event)
+    embed.title = shorten_to(
+        f"{embed.title}"
+        f"Pull request re-review requested from {pr_data['requested_reviewer']['login']}:"
+        f" #{pr_data['number']} {pr_data['title']}",
+        256,
+    )
+    embed.url = pr_data["html_url"]
+    embed.color = discord.Color.from_rgb(0, 152, 0)
+    await webhook.send(embed=embed)
+
+
 @_gh_router.register("deployment_status")
 async def on_deployment_status(event: sansio.Event, *, webhook: Webhook) -> None:
     status = event.data["deployment_status"]
