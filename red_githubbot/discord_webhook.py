@@ -426,7 +426,7 @@ GET_LAST_REVIEW_FROM_REVIEWER_QUERY = utils.minify_graphql_call(
 async def on_pull_request_review_requested(event: sansio.Event, *, webhook: Webhook) -> None:
     repo_data = event.data["repository"]
     pr_data = event.data["pull_request"]
-    reviewer = (pr_data.get("requested_reviewer") or {}).get("login")
+    reviewer = (event.data.get("requested_reviewer") or {}).get("login")
     if reviewer is None:
         await execute_default_github_webhook(event, webhook=webhook)
         return
@@ -447,7 +447,7 @@ async def on_pull_request_review_requested(event: sansio.Event, *, webhook: Webh
     embed = generate_basic_event_embed(event)
     embed.title = shorten_to(
         f"{embed.title}"
-        f"Pull request re-review requested from {pr_data['requested_reviewer']['login']}:"
+        f"Pull request re-review requested from {reviewer}:"
         f" #{pr_data['number']} {pr_data['title']}",
         256,
     )
