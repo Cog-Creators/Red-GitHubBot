@@ -158,7 +158,10 @@ Doesn't seem like much? Don't worry, we're still working on more!
         flyctl secrets set GH_PRIVATE_KEY=- < key.pem
         ```
 
-    - Generate a personal access token for the bot's machine account and set it under `GH_AUTH` variable
+    - Generate a fine-grained personal access token for the bot's machine account and set it under `GH_AUTH` variable
+
+        Link to pre-filled form:
+        https://github.com/settings/personal-access-tokens/new?name=Red-GitHubBot%27s%20machine%20account%20token&contents=write&expires_in=none
 
         ```
         flyctl secrets set GH_AUTH=...
@@ -198,7 +201,11 @@ Doesn't seem like much? Don't worry, we're still working on more!
         ```
 
     - Generate a private key in GitHub App's settings and copy the contents of downloaded key to `GH_PRIVATE_KEY` variable
-    - Generate a personal access token for the bot's machine account and set it under `GH_AUTH` variable
+    - Generate a fine-grained personal access token for the bot's machine account and set it under `GH_AUTH` variable
+
+        Link to pre-filled form:
+        https://github.com/settings/personal-access-tokens/new?name=Red-GitHubBot%27s%20machine%20account%20token&contents=write&expires_in=none
+
     - Deploy the application
 1. Add a webhook to the GitHub App.
     - Use `https://{app_name}.herokuapp.com/webhook` as Webhook URL
