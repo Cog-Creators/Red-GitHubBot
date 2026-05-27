@@ -452,7 +452,6 @@ async def on_pull_request_review_requested(event: sansio.Event, *, webhook: Webh
         256,
     )
     embed.url = pr_data["html_url"]
-    embed.color = discord.Color.from_rgb(0, 152, 0)
     await webhook.send(embed=embed)
 
 
