@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=82.0.1", "setuptools-scm>=10.0.5"]
+requires = ["setuptools>=82.0.1", "setuptools-scm>=10.1.1"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -14,7 +14,7 @@ dependencies = [
     "gidgethub>=5.4.0",
     "graphql-builder==1.0.0a3",
     "markdownify>=1.2.2",
-    "mistune>=3.2.1",
+    "mistune>=3.3.1",
     "psycopg2>=2.9.12",
     "regex>=2026.5.9",
     "sentry-sdk[pure-eval]>=2.63.0",
