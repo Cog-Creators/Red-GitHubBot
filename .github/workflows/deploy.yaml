@@ -17,7 +17,7 @@ jobs:
       image_digest: ${{ steps.image-build.outputs.digest }}
     steps:
       - name: Checkout the repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Install the latest version of uv
         uses: astral-sh/setup-uv@v7
