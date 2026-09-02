@@ -14,7 +14,7 @@ dependencies = [
     "gidgethub>=5.4.0",
     "graphql-builder==1.0.0a3",
     "markdownify>=1.2.2",
-    "mistune>=3.3.2",
+    "mistune>=3.3.3",
     "psycopg2>=2.9.12",
     "regex>=2026.6.28",
     "sentry-sdk[pure-eval]>=2.63.0",
