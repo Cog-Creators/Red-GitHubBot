@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=82.0.1", "setuptools-scm>=10.2.0"]
+requires = ["setuptools>=84.0.0", "setuptools-scm>=10.2.3"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -8,17 +8,17 @@ requires-python = ">=3.14"
 dependencies = [
     "aiohttp>=3.14.3",
     "apscheduler[sqlalchemy]>=3.11.3",
-    "cachetools>=7.1.4",
+    "cachetools>=7.1.8",
     "cherry-picker>=2.4.0",
     "discord.py>=2.7.1",
     "gidgethub>=5.4.0",
     "graphql-builder==1.0.0a3",
-    "markdownify>=1.2.2",
-    "mistune>=3.3.3",
+    "markdownify>=1.2.3",
+    "mistune>=3.3.4",
     "psycopg2>=2.9.12",
-    "regex>=2026.6.28",
-    "sentry-sdk[pure-eval]>=2.63.0",
-    "yarl>=1.24.2",
+    "regex>=2026.9.3",
+    "sentry-sdk[pure-eval]>=2.69.1",
+    "yarl>=1.24.5",
 ]
 dynamic = ["version"]
 
@@ -26,7 +26,7 @@ dynamic = ["version"]
 
 [dependency-groups]
 dev = [
-    "ruff>=0.15.20",
+    "ruff>=0.16.6",
 ]
 
 [tool.uv]
