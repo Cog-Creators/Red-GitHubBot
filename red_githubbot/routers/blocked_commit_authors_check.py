@@ -81,12 +81,12 @@ async def blocked_commit_authors_check(event: sansio.Event) -> None:
         email = author["email"]
         if _is_user_blocked(name, email):
             found_blocked_users.add(f"{name} <{email}>")
-            found_blocked_commits.add(commit_data["sha"])
+            found_blocked_commits.add(commit["sha"])
 
         for name, email in utils.get_coauthors_from_message(commit_data["message"]):
             if _is_user_blocked(name, email):
                 found_blocked_users.add(f"{name} <{email}>")
-                found_blocked_commits.add(commit_data["sha"])
+                found_blocked_commits.add(commit["sha"])
 
     if found_blocked_users:
         conclusion = utils.CheckRunConclusion.FAILURE
