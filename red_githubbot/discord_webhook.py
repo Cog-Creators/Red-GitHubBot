@@ -389,10 +389,11 @@ async def on_pull_request_ready_for_review(event: sansio.Event, *, webhook: Webh
 
     embed = generate_basic_event_embed(event)
     embed.title = shorten_to(
-        f"{embed.title}Pull request #{pr_data['number']} marked as ready for review", 256
+        f"{embed.title}Pull request status changed: #{pr_data['number']}: {pr_data['title']}", 256
     )
     embed.url = pr_data["html_url"]
     embed.color = discord.Color.from_rgb(0, 152, 0)
+    embed.add_field(name="Status", value="Ready for review")
     await webhook.send(embed=embed)
 
 
