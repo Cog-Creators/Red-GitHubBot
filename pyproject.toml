@@ -6,9 +6,9 @@ build-backend = "setuptools.build_meta"
 name = "Red-GitHubBot"
 requires-python = ">=3.14"
 dependencies = [
-    "aiohttp>=3.14.4",
+    "aiohttp>=3.14.5",
     "apscheduler[sqlalchemy]>=3.11.3",
-    "cachetools>=7.2.0",
+    "cachetools>=7.2.3",
     "cherry-picker>=2.7.0",
     "discord.py>=2.7.1",
     "gidgethub>=6.0.0",
@@ -17,7 +17,7 @@ dependencies = [
     "mistune>=3.3.4",
     "psycopg2>=2.9.13",
     "regex>=2026.9.29",
-    "sentry-sdk[pure-eval]>=2.71.0",
+    "sentry-sdk[pure-eval]>=2.72.0",
     "yarl>=1.25.1",
 ]
 dynamic = ["version"]
@@ -26,7 +26,7 @@ dynamic = ["version"]
 
 [dependency-groups]
 dev = [
-    "ruff>=0.16.9",
+    "ruff>=0.17.1",
 ]
 
 [tool.uv]
