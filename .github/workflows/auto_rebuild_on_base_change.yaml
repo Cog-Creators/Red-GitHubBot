@@ -1,0 +1,39 @@
+name: Auto-rebuild image on base change
+
+on:
+  schedule:
+    - cron:  '26 17 * * *'
+  workflow_dispatch:
+
+jobs:
+  check-base-image-update:
+    runs-on: ubuntu-latest
+    outputs:
+      needs-updating: ${{ steps.check.outputs.needs-updating }}
+    steps:
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check if update available
+        id: check
+        uses: lucacome/docker-image-update-checker@03e3f8ff4b69a3bf845e2f6b56f0e0b0ad7e1d1e
+        with:
+          base-image: docker.io/python:3.14-trixie
+          image: ghcr.io/cog-creators/red-githubbot
+
+  rebuild:
+    name: Rebuild image with new base and deploy
+    needs: check-base-image-update
+    if: needs.check-base-image-update.outputs.needs-updating == 'true'
+    uses: ./.github/workflows/deploy.yaml
+    # Even though there are no secrets in this workflow, the called workflow
+    # won't be able to access any secrets without explicit `secrets: inherit`
+    # https://github.com/orgs/community/discussions/25238#discussioncomment-3247035
+    # https://docs.github.com/en/actions/how-tos/reuse-automations/reuse-workflows#passing-secrets-to-nested-workflows
+    secrets: inherit
+    permissions:
+      packages: write
