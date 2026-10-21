@@ -32,6 +32,7 @@ dev = [
 [tool.uv]
 cache-keys = [{ file = "pyproject.toml" }, { git = { commit = true } }]
 exclude-newer = "2 days"
+exclude-newer-package = { certifi = false }
 
 [tool.ruff]
 line-length = 99
