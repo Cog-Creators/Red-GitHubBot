@@ -609,3 +609,5 @@ async def handle_event(
         "discussion_comment",
     ):
         return await execute_default_github_webhook(event, webhook=webhook)
+
+    return web.Response(status=200)
