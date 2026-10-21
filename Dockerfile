@@ -25,9 +25,8 @@ WORKDIR /app
 # Install dependencies
 RUN --mount=type=cache,target=/root/.cache/uv \
     --mount=type=bind,source=uv.lock,target=uv.lock \
-    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
     SETUPTOOLS_SCM_PRETEND_VERSION_FOR_RED_GITHUBBOT=0.1 \
-    uv sync --locked --no-install-project
+    uv sync --frozen --no-install-project
 
 COPY . /app
 
