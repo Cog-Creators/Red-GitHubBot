@@ -474,6 +474,16 @@ async def on_deployment_status(event: sansio.Event, *, webhook: Webhook) -> None
     else:
         return
 
+    if event.data.get("workflow_run", {}).get("event") == "schedule":
+        # Actor on scheduled workflows is the last user who created the scheduled trigger:
+        # https://github.com/orgs/community/discussions/25067
+        # https://github.com/orgs/community/discussions/47855
+        embed.set_author(
+            name="github-actions[bot]",
+            url="https://github.com/apps/github-actions",
+            icon_url="https://avatars.githubusercontent.com/in/15368",
+        )
+
     embed.title = shorten_to(
         f"{embed.title}Deployment {status_text}: {status['environment']}", 256
     )
