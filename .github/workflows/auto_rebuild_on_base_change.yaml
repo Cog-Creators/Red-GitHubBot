@@ -20,7 +20,7 @@ jobs:
 
       - name: Check if update available
         id: check
-        uses: lucacome/docker-image-update-checker@03e3f8ff4b69a3bf845e2f6b56f0e0b0ad7e1d1e
+        uses: lucacome/docker-image-update-checker@a9613235d22dc951741aef2b6301da8db05ea5f6
         with:
           base-image: docker.io/python:3.14-trixie
           image: ghcr.io/cog-creators/red-githubbot
