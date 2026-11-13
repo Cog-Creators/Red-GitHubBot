@@ -330,6 +330,15 @@ async def on_pull_request_opened(event: sansio.Event, *, webhook: Webhook) -> No
         await _on_pull_request_opened_embed(event, webhook=webhook)
 
 
+def _format_shortstats(pr_data: dict[str, Any]) -> str:
+    stats = {
+        "file%s changed": pr_data["changed_files"],
+        "insertion%s": pr_data["additions"],
+        "deletion%s": pr_data["deletions"],
+    }
+    return ", ".join(f"{cnt} {fmt % '' if cnt == 1 else 's'}" for fmt, cnt in stats.items())
+
+
 async def _on_pull_request_opened_embed(event: sansio.Event, *, webhook: Webhook) -> None:
     pr_data = event.data["pull_request"]
 
@@ -345,6 +354,7 @@ async def _on_pull_request_opened_embed(event: sansio.Event, *, webhook: Webhook
     milestone_data = pr_data["milestone"]
     if milestone_data is not None:
         embed.add_field(name="Milestone", value=milestone_data["title"])
+    embed.set_footer(text=_format_shortstats(pr_data))
     await webhook.send(embed=embed)
 
 
@@ -366,6 +376,7 @@ async def _on_pull_request_opened_components(event: sansio.Event, *, webhook: We
     milestone_data = pr_data["milestone"]
     if milestone_data is not None:
         footer_parts.append(f"-# Milestone: {milestone_data['title']}")
+    footer_parts.append(f"-# {_format_shortstats(pr_data)}")
     if footer_parts:
         footer.content = "\n".join(footer_parts)
 
