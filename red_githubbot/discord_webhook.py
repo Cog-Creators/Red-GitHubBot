@@ -336,7 +336,7 @@ def _format_shortstats(pr_data: dict[str, Any]) -> str:
         "insertion%s": pr_data["additions"],
         "deletion%s": pr_data["deletions"],
     }
-    return ", ".join(f"{cnt} {fmt % '' if cnt == 1 else 's'}" for fmt, cnt in stats.items())
+    return ", ".join(f"{cnt} {fmt % ('' if cnt == 1 else 's')}" for fmt, cnt in stats.items())
 
 
 async def _on_pull_request_opened_embed(event: sansio.Event, *, webhook: Webhook) -> None:
